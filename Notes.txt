@@ -1,0 +1,21 @@
+https://github.com/PickNikRobotics/generate_parameter_library
+
+https://github.com/PickNikRobotics/ros_control_boilerplate
+
+https://github.com/PickNikRobotics/rviz_visual_tools
+
+
+
+
+    `colcon build --packages-select [package_name] --cmake-args -DCMAKE_BUILD_TYPE=Debug``
+
+    export  RCUTILS_CONSOLE_OUTPUT_FORMAT="[{severtiy}] [{date_time_with_ms}] [{name}] [{function_name}] [{file_name}]:[{line_number}] [{message}]"
+    export  RCUTILS_CONSOLE_OUTPUT_FORMAT="[{severity}] [{date_time_with_ms}] [{name}] [{message}]"
+
+ros2 launch vqwbot_bringup minimal.launch.py
+
+ros2 topic echo /diffbot_base_controller/cmd_vel geometry_msgs/msg/Twist
+ros2 topic echo /diffbot_base_controller/cmd_vel geometry_msgs/msg/TwistStamped
+
+YouTube: "Articulated Robotics"
+

@@ -1,0 +1,78 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    diffbot_base_controller:
+      type: diff_drive_controller/DiffDriveController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/ImuSensorBroadcaster
+
+diffbot_base_controller:
+  ros__parameters:
+    left_wheel_names: ["left_wheel_joint"]
+    right_wheel_names: ["right_wheel_joint"]
+
+    wheel_separation: 0.3
+    wheel_radius: 0.048
+
+    wheel_separation_multiplier: 1.0
+    left_wheel_radius_multiplier: 1.0
+    right_wheel_radius_multiplier: 1.0
+
+    publish_rate: 20.0
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+    pose_covariance_diagonal : [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+
+    open_loop: false  # Calculate odometry
+    enable_odom_tf: true  # Publish odometry transform
+
+    cmd_vel_timeout: 0.5
+    #publish_limited_velocity: true
+    use_stamped_vel: false
+    #velocity_rolling_window_size: 10
+
+    # Velocity and acceleration limits
+    # Whenever a min_* is unspecified, default to -max_*
+    linear.x.has_velocity_limits: true
+    linear.x.has_acceleration_limits: true
+    linear.x.has_jerk_limits: false
+    linear.x.max_velocity: 1.0
+    linear.x.min_velocity: -0.4
+    linear.x.max_acceleration: 1.0
+    linear.x.max_jerk: 0.0
+    angular.z.has_velocity_limits: true
+    angular.z.has_acceleration_limits: true
+    angular.z.has_jerk_limits: false
+    angular.z.max_velocity: 1.0
+    angular.z.max_acceleration: 1.0
+    angular.z.max_jerk: 0.0
+
+imu_sensor_broadcaster:
+    ros__parameters:
+      sensor_name: "imu_sensor"
+      frame_id: imu_link
+      orientation_covariance: [0.0025, 0.0, 0.0, 0.0, 0.0025, 0.0, 0.0, 0.0, 0.0025]
+      angular_velocity_covariance: [0.02, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.02]
+      linear_acceleration_covariance: [0.04, 0.0, 0.0, 0.0, 0.04, 0.0, 0.0, 0.0, 0.04]
+      publish_rate: 50.0
+
+      # interface_names.orientation.x: "imu_sensor/orientation.x"
+      # interface_names.orientation.y: "imu_sensor/orientation.y"
+      # interface_names.orientation.z: "imu_sensor/orientation.z"
+
+      # interface_names.angular_velocity.x: "imu_sensor/angular_velocity.x"
+      # interface_names.angular_velocity.y: "imu_sensor/angular_velocity.y"
+      # interface_names.angular_velocity.z: "imu_sensor/angular_velocity.z"
+
+      # interface_names.linear_acceleration.x: "imu_sensor/linear_acceleration.x"
+      # interface_names.linear_acceleration.y: "imu_sensor/linear_acceleration.y"
+      # interface_names.linear_acceleration.z: "imu_sensor/linear_acceleration.z"
+
+
+

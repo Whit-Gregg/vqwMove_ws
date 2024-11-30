@@ -1,0 +1,9 @@
+<library path="bno086_hardware_interface">
+  <class name="bno086_hardware_interface/Bno086HardwareInterface"
+         type="bno086_hardware_interface::Bno086HardwareInterface"
+         base_class_type="hardware_interface::SensorInterface">
+    <description>
+      BNO086 IMU via Teensy system hardware interface for ros2_control.
+    </description>
+  </class>
+</library>
