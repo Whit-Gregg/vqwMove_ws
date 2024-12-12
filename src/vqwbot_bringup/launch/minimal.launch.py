@@ -28,7 +28,7 @@ def generate_launch_description():
     ros2_control_node = Node(
         package="controller_manager",
         executable="ros2_control_node",
-        arguments=["--ros-args", "--log-level", "DEBUG"],
+       # arguments=["--ros-args", "--log-level", "DEBUG"],
         parameters=[robot_description, robot_controllers_path],
         output="both",
     )
@@ -47,14 +47,14 @@ def generate_launch_description():
         output="both",
     )
 
-    imu_broadcaster_spawner = Node(
+    imu_sensor_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["imu_sensor_broadcaster", "--controller-manager", "/controller_manager"],
         output="both",
     )
 
-    robot_controller_spawner = Node(
+    diffbot_base_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["diffbot_base_controller", "--controller-manager", "/controller_manager"],
@@ -68,8 +68,8 @@ def generate_launch_description():
         ros2_control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
-        imu_broadcaster_spawner,
-        robot_controller_spawner,
+        imu_sensor_broadcaster_spawner,
+        diffbot_base_controller_spawner,
     ]
 
     return LaunchDescription(nodes)

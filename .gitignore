@@ -1,0 +1,6 @@
+build/**
+install/**
+log/**
+*.log
+latest_build
+latest

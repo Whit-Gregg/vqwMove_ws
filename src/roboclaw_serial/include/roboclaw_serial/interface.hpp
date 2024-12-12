@@ -130,14 +130,19 @@ namespace roboclaw_serial
         int64_t delay_millis = 10;
         rclcpp::sleep_for(std::chrono::milliseconds(delay_millis));
 
-        auto log = rclcpp::get_logger("RoboclawSerialInterface");
-        RCLCPP_INFO(log, " read(0x%02X,..) CRCs do not match, consec=%d, total=%d", cmd, consecutive_crc_errors_, total_crc_errors_);
-
+        if ((total_crc_errors_ < 5) || ((total_crc_errors_ % total_crc_errors_MOD_) == 0))
+        {
+          total_crc_errors_MOD_ = total_crc_errors_MOD_ + 100;
+          double crc_error_percent = ((double)total_crc_errors_ / (double)total_reads_) * 100.0;
+          auto log = rclcpp::get_logger("RoboclawSerialInterface");
+          RCLCPP_INFO(log, " read(0x%02X,..) CRCs do not match, consec=%d, total=%d out of %ld total reads (%.2f%%)", cmd, consecutive_crc_errors_, total_crc_errors_, total_reads_, crc_error_percent);
+        }
         device_->restart();
       }
       else
       {
         consecutive_crc_errors_ = 0;
+        total_reads_++;
         try
         {
           // Extract the data
@@ -193,15 +198,19 @@ namespace roboclaw_serial
         int64_t delay_millis = 10;
         rclcpp::sleep_for(std::chrono::milliseconds(delay_millis));
 
-        auto log = rclcpp::get_logger("RoboclawSerialInterface");
-        RCLCPP_INFO(log, "write( 0x%02X,..) did not get an ACK, consec=%d, total_err=%d total_good=%d", cmd, consecutive_ack_errors_, total_ack_errors_, total_good_acks_);
-
+        if ((total_ack_errors_ < 5) || ((total_ack_errors_ % 10) == 0))
+        {
+          double ack_error_percent = ((double)total_ack_errors_ / (double)total_writes_) * 100.0;
+          auto log = rclcpp::get_logger("RoboclawSerialInterface");
+          RCLCPP_INFO(log, "write( 0x%02X,..) did not get an ACK, consec=%d, total_err=%d total_good=%d  (%.2f %%)", cmd, consecutive_ack_errors_, total_ack_errors_, total_good_acks_, ack_error_percent);
+        }
         device_->restart();
       }
       else
       {
         consecutive_ack_errors_ = 0;
         total_good_acks_++;
+        total_writes_++;
       }
     }
 
@@ -292,8 +301,11 @@ namespace roboclaw_serial
     SerializedBuffer<64> buffer_;
     std::mutex mutex_;
 
+    long total_reads_ = 0;
+    long total_writes_ = 0;
     int consecutive_crc_errors_ = 0;
     int total_crc_errors_ = 0;
+    int total_crc_errors_MOD_ = 50;
     int consecutive_read_errors_ = 0;
     int total_read_errors_ = 0;
     int consecutive_ack_errors_ = 0;

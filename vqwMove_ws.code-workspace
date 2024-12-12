@@ -106,6 +106,7 @@
 			"variant": "cpp",
 			"*.ipp": "cpp"
 		},
-		"ros.distro": "jazzy"
+		"ros.distro": "jazzy",
+		"git.ignoreLimitWarning": true
 	}
 }

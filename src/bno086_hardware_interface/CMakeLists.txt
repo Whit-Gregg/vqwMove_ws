@@ -13,6 +13,7 @@ find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(hardware_interface REQUIRED)
 find_package(controller_interface REQUIRED)
+find_package(class_loader REQUIRED)
 
 pluginlib_export_plugin_description_file(hardware_interface bno086_hardware_interface.xml)
 
@@ -22,8 +23,22 @@ include_directories(
   include/bno086_hardware_interface
   )
 
+add_executable(bno086_test_class_loader src/bno086_test_class_loader.cpp)
+install(TARGETS bno086_test_class_loader 
+        RUNTIME DESTINATION lib
+        )
+ament_target_dependencies(
+        bno086_test_class_loader PUBLIC
+          rclcpp
+          rclcpp_lifecycle
+          hardware_interface
+          controller_interface
+          pluginlib
+        )
+        
 
-add_library(${PROJECT_NAME} 
+
+add_library(${PROJECT_NAME} SHARED
             src/Bno086HardwareInterface.cpp 
             src/elapsedMillis.cpp
             src/vqwPipe_Driver_Linux.cpp
@@ -40,10 +55,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 
 ament_target_dependencies(
-  ${PROJECT_NAME}
-  "rclcpp"
-  "std_srvs"
-  "sensor_msgs"
+  ${PROJECT_NAME} PUBLIC
+   rclcpp
+   rclcpp_lifecycle
   hardware_interface
   controller_interface
   pluginlib
@@ -72,7 +86,6 @@ install(FILES
   DESTINATION share/${PROJECT_NAME}
 )
 
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -88,11 +101,7 @@ endif()
 # # ament_export_include_directories(
 # #   "include/${PROJECT_NAME}"
 # # )
-ament_export_libraries(
-  Bno086HardwareInterface
-)
-ament_export_targets(
-  export_${PROJECT_NAME}
-)
+ament_export_libraries(Bno086HardwareInterface)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET) 
 
 ament_package()

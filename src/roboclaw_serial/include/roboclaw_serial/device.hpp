@@ -39,10 +39,10 @@ namespace roboclaw_serial
     explicit SerialDevice(const std::string device) { connect(device); }
     virtual ~SerialDevice() { disconnect(); }
 
-//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
     virtual bool connect(const std::string &device)
     {
-      //RCLCPP_INFO(rclcpp::get_logger("RoboclawSerialDevice"), "connect(%s)...", device.c_str());
+      // RCLCPP_INFO(rclcpp::get_logger("RoboclawSerialDevice"), "connect(%s)...", device.c_str());
       if (fd_ != -1)
       {
         close(fd_);
@@ -60,11 +60,16 @@ namespace roboclaw_serial
         std::cerr << "Failed to open serial device: " << device << std::endl;
         perror("Error");
       }
-      RCLCPP_INFO(rclcpp::get_logger("RoboclawSerialDevice"), "connect(%s) == %d", device.c_str(), connected_);
+
+      info_count++;
+      if ((info_count < 10) || (info_count % 100 == 0))
+      {
+        RCLCPP_INFO(rclcpp::get_logger("RoboclawSerialDevice"), "connect(%s) == %s     total trys=%ld", device.c_str(), (connected_ ? "OK":"FAILED"),info_count);
+      }
       return connected_;
     }
 
-//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
     virtual void disconnect()
     {
       if (connected_)
@@ -75,17 +80,17 @@ namespace roboclaw_serial
       }
     }
 
-//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
     bool restart()
     {
-      //RCLCPP_INFO(rclcpp::get_logger("RoboclawSerialDevice"), "ReStarting...........%s", device_name_.c_str());
+      // RCLCPP_INFO(rclcpp::get_logger("RoboclawSerialDevice"), "ReStarting...........%s", device_name_.c_str());
       disconnect();
       return connect(device_name_);
     }
 
     bool connected() const { return connected_; }
 
-//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
     virtual ssize_t write(const std::byte *buffer, std::size_t count)
     {
       ssize_t result = ::write(fd_, buffer, count);
@@ -97,7 +102,7 @@ namespace roboclaw_serial
       return static_cast<ssize_t>(result) == count;
     }
 
-//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
     virtual ssize_t read(std::byte *buffer, std::size_t count)
     {
       memset(buffer, 0, count);
@@ -110,10 +115,9 @@ namespace roboclaw_serial
       }
       return result;
       // return static_cast<std::size_t>(result);//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
-
     }
 
-//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
   protected:
     bool connected_ = false;
 
@@ -156,13 +160,13 @@ namespace roboclaw_serial
       {
         perror("tcsetattr");
       }
-
     }
 
-//-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
 
     int fd_ = -1;
     std::string device_name_;
+    long info_count = 0;
   };
 
 } // namespace roboclaw_serial

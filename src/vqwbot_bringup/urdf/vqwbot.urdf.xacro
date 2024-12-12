@@ -14,14 +14,14 @@
   <!-- Import roboclaw.ros2_control macro -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/roboclaw.ros2_control.xacro" />
 
-  <!-- Import bno086_ros2_control macro -->
-  <xacro:include filename="$(find vqwbot_bringup)/urdf/bno086.ros2_control.xacro" />
+  <!-- Import bno08x_ros2_control macro -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/bno08x.ros2_control.xacro" />
 
   <xacro:vqwbot_base />
 
   <xacro:roboclaw_ros2_control name="roboclaw_controller" />
 
-  <xacro:bno086_ros2_control name="bno086_controller" />
+  <xacro:bno08x_ros2_control name="bno08x_controller" />
 
 
 </robot>

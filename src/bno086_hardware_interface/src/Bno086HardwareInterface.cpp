@@ -9,7 +9,6 @@
 
 #include "bno086_hardware_interface/Bno086HardwareInterface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
-#include "rclcpp/rclcpp.hpp"
 
 namespace bno086_hardware_interface
 {
@@ -68,6 +67,86 @@ namespace bno086_hardware_interface
 
     //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
     //-=+~-=+~-=
+    //-=+~-=+~-=  on_export_state_interfaces
+    //-=+~-=+~-=
+    std::vector<hardware_interface::StateInterface::ConstSharedPtr> Bno086Hardwareinterface::on_export_state_interfaces()
+    {
+        pOrientation_X = std::make_shared<hardware_interface::StateInterface>(Name, "orientation.x", &orientation_[0]);
+        pOrientation_Y = std::make_shared<hardware_interface::StateInterface>(Name, "orientation.y", &orientation_[1]);
+        pOrientation_Z = std::make_shared<hardware_interface::StateInterface>(Name, "orientation.z", &orientation_[2]);
+        pOrientation_W = std::make_shared<hardware_interface::StateInterface>(Name, "orientation.w", &orientation_[3]);
+
+        pAngular_velocity_X = std::make_shared<hardware_interface::StateInterface>(Name, "angular_velocity.x", &angular_velocity_[0]);
+        pAngular_velocity_Y = std::make_shared<hardware_interface::StateInterface>(Name, "angular_velocity.y", &angular_velocity_[1]);
+        pAngular_velocity_Z = std::make_shared<hardware_interface::StateInterface>(Name, "angular_velocity.z", &angular_velocity_[2]);
+
+        pLinear_acceleration_X = std::make_shared<hardware_interface::StateInterface>(Name, "linear_acceleration.x", &linear_acceleration_[0]);
+        pLinear_acceleration_Y = std::make_shared<hardware_interface::StateInterface>(Name, "linear_acceleration.y", &linear_acceleration_[1]);
+        pLinear_acceleration_Z = std::make_shared<hardware_interface::StateInterface>(Name, "linear_acceleration.z", &linear_acceleration_[2]);
+
+        std::vector<hardware_interface::StateInterface::ConstSharedPtr> state_interfaces;
+
+        state_interfaces.push_back(pOrientation_X);
+        state_interfaces.push_back(pOrientation_Y);
+        state_interfaces.push_back(pOrientation_Z);
+        state_interfaces.push_back(pOrientation_W);
+
+        state_interfaces.push_back(pAngular_velocity_X);
+        state_interfaces.push_back(pAngular_velocity_Y);
+        state_interfaces.push_back(pAngular_velocity_Z);
+
+        state_interfaces.push_back(pLinear_acceleration_X);
+        state_interfaces.push_back(pLinear_acceleration_Y);
+        state_interfaces.push_back(pLinear_acceleration_Z);
+
+        return state_interfaces;
+    }
+
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
+    //-=+~-=+~-=
+    //-=+~-=+~-=  on_activate
+    //-=+~-=+~-=
+    hardware_interface::CallbackReturn Bno086Hardwareinterface::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
+    {
+        // prepare the robot to receive commands and/or state
+        bool isOK = pPipeDriver->connect(serial_port_name, serial_port_speed);
+
+        if (!isOK)
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("bno086_hardware_interface"), "Bno086Hardwareinterface::on_activate()  pPipeDriver->connect(\'%s\', %d) failed !!!!!", serial_port_name.c_str(), serial_port_speed);
+            return CallbackReturn::ERROR;
+        }
+        else
+        {
+            RCLCPP_INFO(rclcpp::get_logger("bno086_hardware_interface"), "Bno086Hardwareinterface::on_activate()  pPipeDriver->connect(\'%s\', %d) IS ok.", serial_port_name.c_str(), serial_port_speed);
+        }
+        return CallbackReturn::SUCCESS;
+    }
+
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
+    //-=+~-=+~-=
+    //-=+~-=+~-=  on_deactivate
+    //-=+~-=+~-=
+    hardware_interface::CallbackReturn Bno086Hardwareinterface::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
+    {
+        pPipeDriver->disconnect();
+        // TODO(anyone): prepare the robot to stop receiving commands
+
+        return CallbackReturn::SUCCESS;
+    }
+
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
+    //-=+~-=+~-=
+    //-=+~-=+~-=  read
+    //-=+~-=+~-=
+    hardware_interface::return_type Bno086Hardwareinterface::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+    {
+        pPipe->loop();
+        return hardware_interface::return_type::OK;
+    }
+
+    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
+    //-=+~-=+~-=
     //-=+~-=+~-=  on_vqwPipe_chan_IMU_data_msg
     //-=+~-=+~-=
     void Bno086Hardwareinterface::on_vqwPipe_chan_IMU_data_msg(const vqwPipe_chan_IMU_data_msg *pData)
@@ -105,107 +184,6 @@ namespace bno086_hardware_interface
         }
     }
 
-
-
-
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
-    //-=+~-=+~-=
-    //-=+~-=+~-=  on_export_state_interfaces
-    //-=+~-=+~-=
-    std::vector<hardware_interface::StateInterface::ConstSharedPtr> on_export_state_interfaces() const
-    {
-            std::vector<hardware_interface::StateInterface::ConstSharedPtr> state_interfaces;
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "orientation.x", &orientation_[0]));
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "orientation.y", &orientation_[1]));
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "orientation.z", &orientation_[2]));
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "orientation.w", &orientation_[3]));
-
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "angular_velocity.x", &angular_velocity_[0]));
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "angular_velocity.y", &angular_velocity_[1]));
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "angular_velocity.z", &angular_velocity_[2]));
-
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "linear_acceleration.x", &linear_acceleration_[0]));
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "linear_acceleration.y", &linear_acceleration_[1]));
-            state_interfaces.push_back(std::make_shared<hardware_interface::StateInterface>(name_, "linear_acceleration.z", &linear_acceleration_[2]));
-            
-            return state_interfaces;
-    }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
-    //-=+~-=+~-=
-    //-=+~-=+~-=  export_state_interfaces
-    //-=+~-=+~-=
-    // // // std::vector<hardware_interface::StateInterface> Bno086Hardwareinterface::export_state_interfaces()
-    // // // {
-    // // //     std::vector<hardware_interface::StateInterface> state_interfaces;
-
-    // // //     state_interfaces.emplace_back(name_, "orientation.x", &orientation_[0]);
-    // // //     state_interfaces.emplace_back(name_, "orientation.y", &orientation_[1]);
-    // // //     state_interfaces.emplace_back(name_, "orientation.z", &orientation_[2]);
-    // // //     state_interfaces.emplace_back(name_, "orientation.w", &orientation_[3]);
-
-    // // //     state_interfaces.emplace_back(name_, "angular_velocity.x", &angular_velocity_[0]);
-    // // //     state_interfaces.emplace_back(name_, "angular_velocity.y", &angular_velocity_[1]);
-    // // //     state_interfaces.emplace_back(name_, "angular_velocity.z", &angular_velocity_[2]);
-
-    // // //     state_interfaces.emplace_back(name_, "linear_acceleration.x", &linear_acceleration_[0]);
-    // // //     state_interfaces.emplace_back(name_, "linear_acceleration.y", &linear_acceleration_[1]);
-    // // //     state_interfaces.emplace_back(name_, "linear_acceleration.z", &linear_acceleration_[2]);
-
-    // // //     return state_interfaces;
-    // // // }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
-    //-=+~-=+~-=
-    //-=+~-=+~-=  export_command_interfaces
-    //-=+~-=+~-=
-    // // // // // std::vector<hardware_interface::CommandInterface> Bno086Hardwareinterface::export_command_interfaces()
-    // // // // // {
-    // // // // //     std::vector<hardware_interface::CommandInterface> command_interfaces;
-    // // // // //     return command_interfaces;
-    // // // // // }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
-    //-=+~-=+~-=
-    //-=+~-=+~-=  on_activate
-    //-=+~-=+~-=
-    hardware_interface::CallbackReturn Bno086Hardwareinterface::on_activate(const rclcpp_lifecycle::State & /*previous_state*/)
-    {
-        // TODO(anyone): prepare the robot to receive commands
-        bool isOK = pPipeDriver->connect(serial_port_name, serial_port_speed);
-
-        if (!isOK)
-        {
-            RCLCPP_ERROR(rclcpp::get_logger("bno086_hardware_interface"), "Bno086Hardwareinterface::on_activate()  pPipeDriver->connect(\'%s\', %d) failed !!!!!", serial_port_name.c_str(), serial_port_speed);
-            return CallbackReturn::ERROR;
-        }
-
-        return CallbackReturn::SUCCESS;
-    }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
-    //-=+~-=+~-=
-    //-=+~-=+~-=  on_deactivate
-    //-=+~-=+~-=
-    hardware_interface::CallbackReturn Bno086Hardwareinterface::on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/)
-    {
-        pPipeDriver->disconnect();
-        // TODO(anyone): prepare the robot to stop receiving commands
-
-        return CallbackReturn::SUCCESS;
-    }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
-    //-=+~-=+~-=
-    //-=+~-=+~-=  read
-    //-=+~-=+~-=
-    hardware_interface::return_type Bno086Hardwareinterface::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
-    {
-        pPipe->loop();
-        return hardware_interface::return_type::OK;
-    }
-
     //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=
     //-=+~-=+~-=
     //-=+~-=+~-=  BNO086_CLI
@@ -217,6 +195,9 @@ namespace bno086_hardware_interface
     }
 
     //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+    //-=+~-=+~-=
+    //-=+~-=+~-=  get_hardware_parameters
+    //-=+~-=+~-=
     void Bno086Hardwareinterface::get_hardware_parameters(const hardware_interface::HardwareInfo &hardware_info)
     {
         try //----------- serial_port_name -------------
@@ -226,7 +207,7 @@ namespace bno086_hardware_interface
         catch (const std::out_of_range &)
         {
             RCLCPP_ERROR(rclcpp::get_logger("Bno086Hardwareinterface"),
-                         "Bno086Hardwareinterface::on_init() 'bno086_serial_port_name' must be defined as a hardware parameter in the URDF file.");
+                         "Bno086Hardwareinterface::get_hardware_parameters() 'bno086_serial_port_name' must be defined as a hardware parameter in the URDF file.");
         }
 
         try //----------- serial_port_speed -------------
@@ -238,96 +219,44 @@ namespace bno086_hardware_interface
         catch (const std::out_of_range &)
         {
             RCLCPP_ERROR(rclcpp::get_logger("Bno086Hardwareinterface"),
-                         "Bno086Hardwareinterface::on_init() 'bno086_serial_port_speed' must be defined as a hardware parameter in the URDF file.");
+                         "Bno086Hardwareinterface::get_hardware_parameters() 'bno086_serial_port_speed' must be defined as a hardware parameter in the URDF file.");
         }
+
         RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"),
                     "Bno086Hardwareinterface::get_hardware_parameters() bno086_serial_port_name='%s', bno086_serial_port_speed=%d", serial_port_name.c_str(), serial_port_speed);
+
+        /*
+        inside semantic_components/imu_sensor/hpp:
+            state_interfaces{0..3] = orientation.x, orientation.y, orientation.z, orientation.w
+            state_interfaces{4..6] = angular_velocity.x, angular_velocity.y, angular_velocity.z
+            state_interfaces{7..9] = linear_acceleration.x, linear_acceleration.y, linear_acceleration.z
+        */
+
+        //===================================================================================================
+        RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "Bno086Hardwareinterface::get_hardware_parameters()    "
+                                                                   "HardwareInfo.name='%s', HardwareInfo.type='%s', HardwareInfo.hardware_plugin_name='%s'",
+                    hardware_info.name.c_str(), hardware_info.type.c_str(), hardware_info.hardware_plugin_name.c_str());
+
+        for (uint s = 0; s < info_.sensors.size(); s++)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "Bno086Hardwareinterface::get_hardware_parameters()           "
+                                                                       "sensor[%d].name='%s', sensor[%d].type='%s', sensor[%d].state_interfaces.size()=%ld",
+                        s, info_.sensors[s].name.c_str(), s, info_.sensors[s].type.c_str(), s, info_.sensors[s].state_interfaces.size());
+
+            for (uint i = 0; i < info_.sensors[0].state_interfaces.size(); i++)
+            {
+                RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "Bno086Hardwareinterface::get_hardware_parameters()                "
+                                                                           "sensor[%d].state_interfaces[%d].name='%s', sensor[%d].state_interfaces[%d].data_type='%s'",
+                            s, i, info_.sensors[s].state_interfaces[i].name.c_str(), s, i, info_.sensors[s].state_interfaces[i].data_type.c_str());
+            }
+        }
 
     } // end of: Bno086Hardwareinterface::get_hardware_parameters
 
     //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
-    // // // // // bool Bno086Hardwareinterface::connect(const std::string &serial_port_name_)
-    // // // // // {
-    // // // // //     // RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "connect(%s)...", device.c_str());
-    // // // // //     if (serial_port_fd != -1) { close(serial_port_fd); }
-    // // // // //     serial_port_fd = open(serial_port_name_.c_str(), O_RDWR | O_NOCTTY);
-    // // // // //     connected_     = serial_port_fd != -1;
-
-    // // // // //     if (connected_)
-    // // // // //         {
-    // // // // //             serial_port_name = serial_port_name_;
-    // // // // //             setSerialDeviceOptions();
-    // // // // //         }
-    // // // // //     else
-    // // // // //         {
-    // // // // //             RCLCPP_ERROR(rclcpp::get_logger("Bno086Hardwareinterface"), "connect(%s) !! FAILED !!", serial_port_name_.c_str());
-    // // // // //             // std::cerr << "Failed to open serial device: " << device << std::endl;
-    // // // // //             perror("Error");
-    // // // // //         }
-    // // // // //     RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "connect(%s) == %d", serial_port_name_.c_str(), connected_);
-    // // // // //     return connected_;
-    // // // // // }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
-    // // // // void Bno086Hardwareinterface::disconnect()
-    // // // // {
-    // // // //     if (connected_)
-    // // // //         {
-    // // // //             close(serial_port_fd);
-    // // // //             connected_     = false;
-    // // // //             serial_port_fd = -1;
-    // // // //         }
-    // // // // }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
-    // // // // // bool Bno086Hardwareinterface::restart()
-    // // // // // {
-    // // // // //     // RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "ReStarting...........%s", device_name_.c_str());
-    // // // // //     disconnect();
-    // // // // //     return connect(serial_port_name);
-    // // // // // }
-
-    //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
-    // // // // // // // void Bno086Hardwareinterface::setSerialDeviceOptions()
-    // // // // // // // {
-    // // // // // // //     const int      read_timeout_ms = 100;
-    // // // // // // //     struct termios options;
-    // // // // // // //     int            rc = tcgetattr(serial_port_fd, &options);
-
-    // // // // // // //     options.c_cflag &= ~PARENB;              // Clear parity bit, disabling parity (most common)
-    // // // // // // //     options.c_cflag &= ~CSTOPB;              // Clear stop field, only one stop bit used in communication (most common)
-    // // // // // // //     options.c_cflag &= ~CSIZE;               // Clear all the size bits
-    // // // // // // //     options.c_cflag |= CS8;                  // 8 bits per byte (most common)
-    // // // // // // //     options.c_cflag &= ~CRTSCTS;             // Disable RTS/CTS hardware flow control (most common)
-    // // // // // // //     options.c_cflag |= CREAD | CLOCAL;       // Turn on READ & ignore ctrl lines (CLOCAL = 1)
-
-    // // // // // // //     options.c_lflag &= ~ICANON;       // Disable canonical mode
-    // // // // // // //     options.c_lflag &= ~ECHO;         // Disable echo
-    // // // // // // //     options.c_lflag &= ~ECHOE;        // Disable erasure
-    // // // // // // //     options.c_lflag &= ~ECHONL;       // Disable new-line echo
-    // // // // // // //     options.c_lflag &= ~ISIG;         // Disable interpretation of INTR, QUIT and SUSP
-
-    // // // // // // //     options.c_iflag &= ~(IXON | IXOFF | IXANY);                                            // Turn off s/w flow ctrl
-    // // // // // // //     options.c_iflag &= ~(ICRNL | INLCR | IGNBRK | BRKINT | PARMRK | ISTRIP | IGNCR);       // Turn off translation of carriage return and newline
-
-    // // // // // // //     options.c_oflag &= ~OPOST;       // Prevent special interpretation of output bytes (e.g. newline chars)
-    // // // // // // //     options.c_oflag &= ~ONLCR;       // Prevent conversion of newline to carriage return/line feed
-
-    // // // // // // //     // Set in/out baud rate to be 9600, 38400, 115200
-    // // // // // // //     cfsetispeed(&options, serial_port_speed);
-    // // // // // // //     cfsetospeed(&options, serial_port_speed);
-
-    // // // // // // //     options.c_cc[VMIN]  = 0;
-    // // // // // // //     options.c_cc[VTIME] = (cc_t)read_timeout_ms / 100;
-
-    // // // // // // //     tcflush(serial_port_fd, TCIFLUSH);
-    // // // // // // //     rc = tcsetattr(serial_port_fd, TCSANOW, &options);
-    // // // // // // //     if (rc != 0) { perror("tcsetattr"); }
-    // // // // // // // }
-
     //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
 
-} // namespace bno086_hardware_interface
+} //  end of:  namespace bno086_hardware_interface
 
 #include "pluginlib/class_list_macros.hpp"
 

@@ -1,11 +1,13 @@
 #ifndef BNO086_HARDWARE_INTERFACE__BNO086HARDWAREINTERFACE_HPP_
 #define BNO086_HARDWARE_INTERFACE__BNO086HARDWAREINTERFACE_HPP_
 
+#include "rclcpp/rclcpp.hpp"
+
 // // #include "bno086_hardware_interface/SPI.hpp"
 // // #include "bno086_hardware_interface/BNO08x.hpp"
 #include "bno086_hardware_interface/visibility_control.h"
 #include "hardware_interface/sensor_interface.hpp"
-#include "semantic_components/imu_sensor.hpp"
+//#include "semantic_components/imu_sensor.hpp"
 
 #include "vqwPipe.h"
 #include "vqwPipe_Channel.h"
@@ -15,15 +17,15 @@
 namespace bno086_hardware_interface
 {
 
-  class Bno086Hardwareinterface : public hardware_interface::SensorInterface,
-                                  public semantic_components::IMUSensor
+  class Bno086Hardwareinterface : public hardware_interface::SensorInterface
+                                  //public semantic_components::IMUSensor
   {
   public:
-    Bno086Hardwareinterface() : IMUSensor("bno086") {
-      RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "Bno086Hardwareinterface()...");
+    Bno086Hardwareinterface() : Name("bno086") {
+      //RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "Bno086Hardwareinterface()...");
     };
-    Bno086Hardwareinterface(std::string name) : IMUSensor(name) {
-      RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "Bno086Hardwareinterface(%s)...", name.c_str());
+    Bno086Hardwareinterface(std::string _name) : Name(_name) {
+      //RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "Bno086Hardwareinterface(%s)...", Name.c_str());
     };
 
     virtual ~Bno086Hardwareinterface() = default;
@@ -31,18 +33,21 @@ namespace bno086_hardware_interface
     // // //   RCLCPP_INFO(rclcpp::get_logger("Bno086Hardwareinterface"), "~Bno086Hardwareinterface()...");
     // // // };
 
+    virtual hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override;
+
     virtual hardware_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State & /*previous_state*/) override;
 
     virtual hardware_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State & /*previous_state*/) override;
     virtual hardware_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & /*previous_state*/) override;
 
-    virtual hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override;
+    std::vector<hardware_interface::StateInterface::ConstSharedPtr> on_export_state_interfaces() override;
+
 //    virtual std::vector<hardware_interface::StateInterface> export_state_interfaces();
 //    virtual std::vector<hardware_interface::CommandInterface> export_command_interfaces();
 
     virtual hardware_interface::return_type read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/) override;
 
-    virtual std::vector<hardware_interface::StateInterface::ConstSharedPtr> on_export_state_interfaces() const override;
+//    virtual std::vector<hardware_interface::StateInterface::ConstSharedPtr> on_export_state_interfaces() const override;
 
     std::string BNO086_CLI(std::string cmd_text);
 
@@ -65,6 +70,24 @@ namespace bno086_hardware_interface
     // // // void setSerialDeviceOptions();
     void get_hardware_parameters(const hardware_interface::HardwareInfo &hardware_info);
 
+    std::array<double, 4> orientation_;
+    std::array<double, 3> angular_velocity_;
+    std::array<double, 3> linear_acceleration_;
+
+    hardware_interface::StateInterface::ConstSharedPtr pOrientation_X;
+    hardware_interface::StateInterface::ConstSharedPtr pOrientation_Y;
+    hardware_interface::StateInterface::ConstSharedPtr pOrientation_Z;
+    hardware_interface::StateInterface::ConstSharedPtr pOrientation_W;
+    
+    hardware_interface::StateInterface::ConstSharedPtr pAngular_velocity_X;
+    hardware_interface::StateInterface::ConstSharedPtr pAngular_velocity_Y;
+    hardware_interface::StateInterface::ConstSharedPtr pAngular_velocity_Z;
+
+    hardware_interface::StateInterface::ConstSharedPtr pLinear_acceleration_X;
+    hardware_interface::StateInterface::ConstSharedPtr pLinear_acceleration_Y;
+    hardware_interface::StateInterface::ConstSharedPtr pLinear_acceleration_Z;
+
+    std::string Name;
     std::string serial_port_name;
     int serial_port_speed = 0;
 

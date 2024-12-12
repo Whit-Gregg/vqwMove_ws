@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!-- Basic differential drive mobile base -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="vqwbot">
+
+  <!-- Import Rviz colors -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/vqwbot.materials.xacro" />
+
+  <!-- Import inertia mscros -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/vqwbot.inertia.xacro" />
+
+<!-- import vqwbot_base macro -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/vqwbot_description.urdf.xacro" />
+
+  <!-- Import roboclaw.ros2_control macro -->
+  <!-- <xacro:include filename="$(find vqwbot_bringup)/urdf/roboclaw.ros2_control.xacro" /> -->
+
+  <!-- Import bno08x_ros2_control macro -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/bno08x.ros2_control.xacro" />
+
+  <xacro:vqwbot_base />
+
+  <!-- <xacro:roboclaw_ros2_control name="roboclaw_controller" /> -->
+
+  <xacro:bno08x_ros2_control name="bno08x_controller" />
+
+
+</robot>
