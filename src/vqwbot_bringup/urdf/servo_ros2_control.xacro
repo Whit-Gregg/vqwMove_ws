@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="servo_ros2_control" params="joint_name channel">
+
+      <joint name="${joint_name}">
+        <param name="channel">${channel}</param>
+        <command_interface name="position">
+          <param name="min_position">-1.570796</param>
+          <param name="max_position">1.570796</param>
+        </command_interface>
+        <state_interface name="position"/>
+      </joint>
+
+  </xacro:macro>
+
+</robot>

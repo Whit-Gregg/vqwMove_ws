@@ -44,7 +44,7 @@ namespace bno08x_hardware_interface
      * Import the InterfaceDescription for the StateInterfaces from the HardwareInfo.
      * Separate them into the possible types: Sensor and store them.
      */
-    virtual void import_state_interface_descriptions(const hardware_interface::HardwareInfo &hardware_info) override;
+    // // // // // virtual void import_state_interface_descriptions(const hardware_interface::HardwareInfo &hardware_info);
 
     //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
     /**
@@ -141,7 +141,7 @@ namespace bno08x_hardware_interface
 
 
     elapsedMillis elap_since_IMU_count_display;
-    uint32_t elap_since_IMU_count_display_span = 5 * 60 * 1000;
+    uint32_t elap_since_IMU_count_display_span = 25 * 60 * 1000;
 
     std::shared_ptr<vqw::vqwPipe_Driver_Linux> pPipeDriver;
     std::shared_ptr<vqw::vqwPipe> pPipe;

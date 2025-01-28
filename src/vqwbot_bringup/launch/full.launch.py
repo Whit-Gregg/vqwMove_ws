@@ -17,15 +17,10 @@ def generate_launch_description():
     )
     ld.add_action(sllidar_launch)
 
-    # nav2_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
-    #     [os.path.join(get_package_share_directory('vqwbot_bringup'), 'launch', 'nav2.launch.py')])
+    # fuse_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
+    #     [os.path.join(get_package_share_directory('vqwbot_bringup'), 'launch', 'fuse.launch.py')])
     # )
-    # ld.add_action(nav2_launch)
-
-    # rviz_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
-    #     [os.path.join(get_package_share_directory('vqwbot_bringup'), 'launch', 'rviz.launch.py')])
-    # )
-    # ld.add_action(rviz_launch)
+    # ld.add_action(fuse_launch)
 
 
     return ld

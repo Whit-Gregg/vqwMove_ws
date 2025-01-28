@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="cam_pan_tilt_ros2_control" params="name">
+
+    <ros2_control name="${name}" type="actuator">
+      <hardware>
+        <plugin>cam_pan_tilt_hardware_interface/CamPanTiltHardwareInterface</plugin>
+          <param name="i2c_device">/dev/i2c-1</param>
+      </hardware>
+
+      <xacro:servo_ros2_control joint_name="camera_L_pan_joint" channel="0" />
+      <xacro:servo_ros2_control joint_name="camera_L_tilt_joint" channel="1" />
+
+      <xacro:servo_ros2_control joint_name="camera_R_pan_joint" channel="2" />
+      <xacro:servo_ros2_control joint_name="camera_R_tilt_joint" channel="3" />
+
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

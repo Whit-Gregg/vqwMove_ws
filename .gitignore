@@ -4,3 +4,5 @@ log/**
 *.log
 latest_build
 latest
+bin/**
+lib/**

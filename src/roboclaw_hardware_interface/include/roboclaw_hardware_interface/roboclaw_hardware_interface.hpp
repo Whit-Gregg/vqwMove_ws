@@ -34,101 +34,120 @@ using hardware_interface::StateInterface;
 namespace roboclaw_hardware_interface
 {
 
-/// The roboclaw configuration parameters
-typedef std::map<uint8_t, std::map<std::string, MotorJoint::SharedPtr>> RoboClawConfiguration;
+    /// The roboclaw configuration parameters
+    typedef std::map<uint8_t, std::map<std::string, MotorJoint::SharedPtr>> RoboClawConfiguration;
 
-class RoboClawHardwareInterface : public hardware_interface::SystemInterface
-{
-public:
-  //////////////////
-  // CONSTRUCTORS //
-  //////////////////
+    class RoboClawHardwareInterface : public hardware_interface::SystemInterface
+    {
+      public:
+        //////////////////
+        // CONSTRUCTORS //
+        //////////////////
 
-  /// Default constructor for the hardware interface
-  RoboClawHardwareInterface() = default;
+        /// Default constructor for the hardware interface
+        RoboClawHardwareInterface() = default;
 
-  ////////////////////////////////
-  // SYSTEM INTERFACE OVERRIDES //
-  ////////////////////////////////
+        ////////////////////////////////
+        // SYSTEM INTERFACE OVERRIDES //
+        ////////////////////////////////
 
-  /// Initialization of the hardware interface from data parsed from the robot's URDF.
-  /**
-     * \param[in] hardware_info structure with data from URDF.
-     * \returns CallbackReturn::SUCCESS if required data are provided and can be parsed.
-     * \returns CallbackReturn::ERROR if any error happens or data are missing.
-     */
-  CallbackReturn on_init(const HardwareInfo & hardware_info) override;
+        /// Initialization of the hardware interface from data parsed from the robot's URDF.
+        /**
+         * \param[in] hardware_info structure with data from URDF.
+         * \returns CallbackReturn::SUCCESS if required data are provided and can be parsed.
+         * \returns CallbackReturn::ERROR if any error happens or data are missing.
+         */
+        CallbackReturn on_init(const HardwareInfo &hardware_info) override;
 
-  /// Exports all state interfaces for this hardware interface.
-  /**
-     * The state interfaces have to be created and transferred according
-     * to the hardware info passed in for the configuration.
-     *
-     * Note the ownership over the state interfaces is transferred to the caller.
-     *
-     * \return vector of state interfaces
-     */
-  std::vector<StateInterface> export_state_interfaces() override;
+        /// Exports all state interfaces for this hardware interface.
+        /**
+         * The state interfaces have to be created and transferred according
+         * to the hardware info passed in for the configuration.
+         *
+         * Note the ownership over the state interfaces is transferred to the caller.
+         *
+         * \return vector of state interfaces
+         */
+        // "Replaced by vector<StateInterface::ConstSharedPtr> on_export_state_interfaces() method. "
+        // // // // // // std::vector<StateInterface> export_state_interfaces() override;
 
-  /// Exports all command interfaces for this hardware interface.
-  /**
-     * The command interfaces have to be created and transferred according
-     * to the hardware info passed in for the configuration.
-     *
-     * Note the ownership over the state interfaces is transferred to the caller.
-     *
-     * \return vector of command interfaces
-     */
-  std::vector<CommandInterface> export_command_interfaces() override;
+        /**
+         * Default implementation for exporting the StateInterfaces. The StateInterfaces are created
+         * according to the InterfaceDescription. The memory accessed by the controllers and hardware is
+         * assigned here and resides in the system_interface.
+         *
+         * \return vector of shared pointers to the created and stored StateInterfaces
+         */
+        virtual std::vector<StateInterface::ConstSharedPtr> on_export_state_interfaces() override;
 
-  /////////////////////////////////
-  //  SYSTEM INTERFACE OVERRIDES //
-  /////////////////////////////////
+        /// Exports all command interfaces for this hardware interface.
+        /**
+         * The command interfaces have to be created and transferred according
+         * to the hardware info passed in for the configuration.
+         *
+         * Note the ownership over the state interfaces is transferred to the caller.
+         *
+         * \return vector of command interfaces
+         */
+        //////std::vector<CommandInterface> export_command_interfaces() override;
 
-  /// Read the current state values from the actuator.
-  /**
-     * The data readings from the physical hardware has to be updated
-     * and reflected accordingly in the exported state interfaces.
-     * That is, the data pointed by the interfaces shall be updated.
-     *
-     * \param[in] time The time at the start of this control loop iteration
-     * \param[in] period The measured time taken by the last control loop iteration
-     * \return return_type::OK if the read was successful, return_type::ERROR otherwise.
-     */
-  return_type read(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+        virtual std::vector<CommandInterface::SharedPtr> on_export_command_interfaces() override;
 
-  /// Write the current command values to the actuator.
-  /**
-     * The physical hardware shall be updated with the latest value from
-     * the exported command interfaces.
-     *
-     * \param[in] time The time at the start of this control loop iteration
-     * \param[in] period The measured time taken by the last control loop iteration
-     * \return return_type::OK if the read was successful, return_type::ERROR otherwise.
-     */
-  return_type write(const rclcpp::Time & time, const rclcpp::Duration & period) override;
+        /////////////////////////////////
+        //  SYSTEM INTERFACE OVERRIDES //
+        /////////////////////////////////
 
-  /// Validate and organize hardware parameters from hardware information.
-  /**
-     * The hardware info is parsed and validated, checking for parameter
-     * consistency and validity. Parameters are organized and stored in the
-     * roboclaws_ member variable as a
-     * std::map<uint8_t, std::map<std::string, std::optional<MotorConfig>>>,
-     * which maps a roboclaw address (uint8_t) to a map of optional motor
-     * configurations, the keys for which are strings, either "M1" or "M2"
-     *
-     * \param[in] hardware_info structure with data from URDF.
-     *
-     */
-  RoboClawConfiguration parse_roboclaw_configuration(const HardwareInfo & hardware_info);
+        /// Read the current state values from the actuator.
+        /**
+         * The data readings from the physical hardware has to be updated
+         * and reflected accordingly in the exported state interfaces.
+         * That is, the data pointed by the interfaces shall be updated.
+         *
+         * \param[in] time The time at the start of this control loop iteration
+         * \param[in] period The measured time taken by the last control loop iteration
+         * \return return_type::OK if the read was successful, return_type::ERROR otherwise.
+         */
+        return_type read(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-private:
-  /// Shared pointer to the RoboClaw driver interface
-  roboclaw_serial::Interface::SharedPtr interface_;
+        /// Write the current command values to the actuator.
+        /**
+         * The physical hardware shall be updated with the latest value from
+         * the exported command interfaces.
+         *
+         * \param[in] time The time at the start of this control loop iteration
+         * \param[in] period The measured time taken by the last control loop iteration
+         * \return return_type::OK if the read was successful, return_type::ERROR otherwise.
+         */
+        return_type write(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-  /// Vector of uniqely addressable roboclaw units
-  std::vector<RoboClawUnit> roboclaw_units_;
-};
-}  // namespace roboclaw_hardware_interface
+        /// Validate and organize hardware parameters from hardware information.
+        /**
+         * The hardware info is parsed and validated, checking for parameter
+         * consistency and validity. Parameters are organized and stored in the
+         * roboclaws_ member variable as a
+         * std::map<uint8_t, std::map<std::string, std::optional<MotorConfig>>>,
+         * which maps a roboclaw address (uint8_t) to a map of optional motor
+         * configurations, the keys for which are strings, either "M1" or "M2"
+         *
+         * \param[in] hardware_info structure with data from URDF.
+         *
+         */
+        RoboClawConfiguration parse_roboclaw_configuration(const HardwareInfo &hardware_info);
 
-#endif  // ROBOCLAW_HARDWARE_INTERFACE__ROBOCLAW_HARDWARE_INTERFACE_HPP_
+      private:
+        /// Shared pointer to the RoboClaw driver interface
+        roboclaw_serial::Interface::SharedPtr interface_;
+
+        /// Vector of uniqely addressable roboclaw units
+        std::vector<RoboClawUnit> roboclaw_units_;
+
+        RoboClawConfiguration roboclaw_config;
+
+        void DumpConfig();
+        // the map key is the joint name..
+        // std::map<std::string, hardware_interface::StateInterface::SharedPtr> state_interfaces_;
+        // std::map<std::string, hardware_interface::CommandInterface::SharedPtr> command_interfaces_;
+    };
+}       // namespace roboclaw_hardware_interface
+
+#endif       // ROBOCLAW_HARDWARE_INTERFACE__ROBOCLAW_HARDWARE_INTERFACE_HPP_

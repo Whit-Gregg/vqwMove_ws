@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
-<!-- Basic differential drive mobile base -->
+<!-- vqwbot differential drive mobile base -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="vqwbot">
 
   <!-- Import Rviz colors -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/vqwbot.materials.xacro" />
 
-  <!-- Import inertia mscros -->
+  <!-- Import inertia macros -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/vqwbot.inertia.xacro" />
 
 <!-- import vqwbot_base macro -->
@@ -17,11 +17,22 @@
   <!-- Import bno08x_ros2_control macro -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/bno08x.ros2_control.xacro" />
 
+  <!-- Import camera_urdf macro -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/camera.urdf.xacro" />
+
+  <!-- Import camera_urdf macro -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/cam_pan_tilt_ros2_control.xacro" />
+
   <xacro:vqwbot_base />
+
+  <xacro:camera_urdf prefix="L" y_multiplier="1" />
+  <xacro:camera_urdf prefix="R" y_multiplier="-1" />
 
   <xacro:roboclaw_ros2_control name="roboclaw_controller" />
 
   <xacro:bno08x_ros2_control name="bno08x_controller" />
+
+  <!-- <xacro:cam_pan_tilt_ros2_control name="pan_tilt_controller" /> -->
 
 
 </robot>

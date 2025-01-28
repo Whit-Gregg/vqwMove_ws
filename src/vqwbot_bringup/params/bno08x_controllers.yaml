@@ -9,9 +9,9 @@ imu_sensor_broadcaster:
     ros__parameters:
       sensor_name: "imu_sensor"
       frame_id: imu_link
-      orientation_covariance: [0.0025, 0.0, 0.0, 0.0, 0.0025, 0.0, 0.0, 0.0, 0.0025]
-      angular_velocity_covariance: [0.02, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.02]
-      linear_acceleration_covariance: [0.04, 0.0, 0.0, 0.0, 0.04, 0.0, 0.0, 0.0, 0.04]
+      static_covariance_orientation:         [0.0025, 0.0, 0.0, 0.0,   0.0025, 0.0, 0.0, 0.0, 0.0025]
+      static_covariance_angular_velocity:    [0.02,   0.0, 0.0, 0.0,   0.02,   0.0, 0.0, 0.0, 0.02]
+      static_covariance_linear_acceleration: [0.04,   0.0, 0.0, 0.0,   0.04,   0.0, 0.0, 0.0, 0.04]
       publish_rate: 50.0
 
       interface_names.orientation.x: "imu_sensor/orientation.x"
@@ -26,6 +26,4 @@ imu_sensor_broadcaster:
       interface_names.linear_acceleration.x: "imu_sensor/linear_acceleration.x"
       interface_names.linear_acceleration.y: "imu_sensor/linear_acceleration.y"
       interface_names.linear_acceleration.z: "imu_sensor/linear_acceleration.z"
-
-
 

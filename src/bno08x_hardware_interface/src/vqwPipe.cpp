@@ -45,9 +45,10 @@ namespace vqw
             int rc = send_HeartbeatMsg();
 
             // #if defined(__linux__)
-            if ((heartbeat_total_sent < 10) || ((heartbeat_total_sent % 100) == 0) || (rc < 1))
+            if ((heartbeat_total_sent < 6) || ((heartbeat_total_sent % heartbeat_total_sent_span) == 0) || (rc < 1))
             {
                 RCLCPP_INFO(rclcpp::get_logger("vqwPipe"), "vqwPipe::loop() Heartbeat sent.  Seq=%d   rc=%d", (heartbeet_sequence_number - 1), rc);
+                heartbeat_total_sent_span += (heartbeat_total_sent_span / 3);
             }
             // #endif
         }
@@ -65,14 +66,21 @@ namespace vqw
             elap_since_heartbeat_recv = 0;
             heartbeat_total_recv++;
             int expected_sequence_number = heartbeat_recv_sequence_number + 1;
-            if (pData->sequence_number != expected_sequence_number)
+            if ((expected_sequence_number==1)&&(pData->sequence_number>100))
             {
+                expected_sequence_number = pData->sequence_number;
+            }
+            if ((pData->sequence_number != expected_sequence_number) && ((heartbeat_total_recv_bad<5)||((heartbeat_total_recv_bad % heartbeat_total_recv_bad_span)==0)))
+            {
+                heartbeat_total_recv_bad++;
+                heartbeat_total_recv_bad_span += heartbeat_total_recv_bad_span / 10;
                 RCLCPP_WARN(rclcpp::get_logger("vqwPipe"), "on_vqwPipe_chan_mgt_heart_beat() Expected seq = %d   but recv'd seq = %d  !!!!!!!!!!", expected_sequence_number, pData->sequence_number);
             }   
             heartbeat_recv_sequence_number = pData->sequence_number;
-            if ((heartbeat_total_recv < 5) || ((heartbeat_total_recv % 1000) == 0))
+            if ((heartbeat_total_recv < 5) || ((heartbeat_total_recv % heartbeat_total_recv_span) == 0))
             {
                 RCLCPP_INFO(rclcpp::get_logger("vqwPipe"), "on_vqwPipe_chan_mgt_heart_beat()  %s", pData->ToString().c_str());
+                heartbeat_total_recv_span += (heartbeat_total_recv_span / 4);
             }
         }
     }

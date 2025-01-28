@@ -86,6 +86,10 @@ namespace vqw
     long heartbeat_total_sent = 0;
     long heartbeat_total_recv = 0;
     int heartbeat_recv_sequence_number = 0;
+    long heartbeat_total_sent_span = 300;
+    long heartbeat_total_recv_span = 1000;
+    long heartbeat_total_recv_bad = 1000;
+    long heartbeat_total_recv_bad_span = 1000;
 
     void on_vqwPipe_chan_mgt_heart_beat(const vqwPipe_chan_mgt_heart_beat *pData);
 

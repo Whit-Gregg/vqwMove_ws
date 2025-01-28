@@ -19,3 +19,21 @@ ros2 topic echo /diffbot_base_controller/cmd_vel geometry_msgs/msg/TwistStamped
 
 YouTube: "Articulated Robotics"
 
+
+
+TF2 and everything:
+
+We've used two different approaches to this problem:
+
+1.. Invert the transform from odom to base_link, 
+so that base_link is the parent of odom. 
+Your tf tree would be: world->base_link, base_link->odom, base_link->rest of robot. 
+So the odom frame becomes a sidebranch of the tf tree
+
+2.. Pub the odom frame in between base_link and world. 
+Your tf tree would be: world->odom, odom->base_link, base_link->rest of robot. 
+This is the approach we used on the PR2 when putting both odometry and localization in the same tf tree. 
+To accomplish this, you need to convert the output of scan matching (world to base_link) 
+into a new transform (world to odom) by deducting the odom to base_link transform. 
+So scan matching would not publish world to base_link, but world to odom
+

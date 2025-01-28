@@ -1,1 +1,0 @@
-string cmd_text
