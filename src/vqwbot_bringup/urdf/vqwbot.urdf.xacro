@@ -20,8 +20,13 @@
   <!-- Import camera_urdf macro -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/camera.urdf.xacro" />
 
-  <!-- Import camera_urdf macro -->
+  <!-- Import servo_ros2_control macro -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/servo_ros2_control.xacro" />
+
+  <!-- Import cam_pan_tilt_ros2_control macro -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/cam_pan_tilt_ros2_control.xacro" />
+
+
 
   <xacro:vqwbot_base />
 
@@ -32,7 +37,7 @@
 
   <xacro:bno08x_ros2_control name="bno08x_controller" />
 
-  <!-- <xacro:cam_pan_tilt_ros2_control name="pan_tilt_controller" /> -->
+  <xacro:cam_pan_tilt_ros2_control name="pan_tilt_controller" />
 
 
 </robot>

@@ -1,0 +1,28 @@
+game_controller_node:
+    ros__parameters:
+        device_id: 0
+        # device_name: "dev/input/js0"
+        deadzone: 0.25
+        autorepeat_rate: 20.0
+        sticky_buttons: false
+        coalesce_interval_ms: 3
+
+teleop_twist_joy_node:
+  ros__parameters:
+    axis_linear:  # Left thumb stick vertical
+      x: 1
+    scale_linear:
+      x: 0.7
+    scale_linear_turbo:
+      x: 1.5
+
+    axis_angular:  # Left thumb stick horizontal
+      yaw: 0
+    scale_angular:
+      yaw: 0.4
+
+    enable_button: 10  # Right trigger button, aka. RB
+    enable_turbo_button: 9  # Left trigger button, aka. LB
+    publish_stamped_twist: True
+    require_enable_button: True
+

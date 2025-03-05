@@ -34,7 +34,21 @@
     <xacro:property name="wheel_from_centerline" value="${-base_width/2 - wheel_len/2}" />
     
     <!-- ======================================================================== -->
-    <link name="base_footprint" />
+    <link name="base_footprint">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${base_length} ${base_width} 0.001"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${base_length} ${base_width} 0.001"/>
+        </geometry>
+        <material name="orange_transparent"/>
+      </visual>
+    </link>
 
     <!-- ======================================================================== -->
     <joint name="base_joint" type="fixed">
@@ -114,7 +128,7 @@
     <joint name="left_wheel_joint" type="continuous">
       <parent link="base_link"/>
       <child link="left_wheel"/>
-      <origin xyz="0 ${-base_width/2 - wheel_len/2} 0" rpy="0 0 0"/>
+      <origin xyz="0 ${base_width/2 - wheel_len/2} 0" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <dynamics damping="0.2"/>
     </joint>
@@ -139,7 +153,7 @@
     <joint name="right_wheel_joint" type="continuous">
       <parent link="base_link"/>
       <child link="right_wheel"/>
-      <origin xyz="0 ${base_width/2 + wheel_len/2} 0" rpy="0 0 0"/>
+      <origin xyz="0 ${-base_width/2 + wheel_len/2} 0" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <dynamics damping="0.2"/>
     </joint>

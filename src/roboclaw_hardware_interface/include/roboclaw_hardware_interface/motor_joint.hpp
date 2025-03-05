@@ -50,12 +50,19 @@ namespace roboclaw_hardware_interface
         int32_t qppr;
         double  total_distance_meters = 0.0;
         int count_of_getTickRateCommand = 0;
+        int32_t avg_encoder_count_change = 0;
+        const int32_t avg_encoder_count_change_span = 5;
 
       public:
         typedef std::shared_ptr<MotorJoint> SharedPtr;
 
         // Name of the parent joint (from HardwareInfo)
         const std::string name;
+
+        int32_t getProjectedEncoderCount() const
+        {
+            return prior_encoder_count_ + avg_encoder_count_change;
+        }
 
         // Constructor
         MotorJoint(const std::string joint_name, const int32_t qppr, double wheel_diameter);

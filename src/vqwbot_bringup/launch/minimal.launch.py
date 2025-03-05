@@ -25,7 +25,7 @@ def generate_launch_description():
     robot_controllers_path = PathJoinSubstitution([
         FindPackageShare("vqwbot_bringup"),
         "params",
-        "roboclaw_controllers.yaml"
+        "combined_controllers.yaml"
     ])
 
     remappings = [
@@ -46,7 +46,7 @@ def generate_launch_description():
         output="both",
     )
     ld.add_action(robot_state_pub_node)
-
+ 
 
     ros2_control_node = Node(
         package="controller_manager",
@@ -83,10 +83,22 @@ def generate_launch_description():
     diffbot_base_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
+        name="DiffDriveController",
         arguments=["diffbot_base_controller", "--controller-manager", "/controller_manager"],
         output="both",
     )
     ld.add_action(diffbot_base_controller_spawner)
+    
+    #--------- position_controller ----------
+    # ---------
+    position_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        name="CamServoController",
+        arguments=["position_controller", "--controller-manager", "/controller_manager"],
+        output="both",
+    )
+    ld.add_action(position_controller_spawner)
 
     return ld
 

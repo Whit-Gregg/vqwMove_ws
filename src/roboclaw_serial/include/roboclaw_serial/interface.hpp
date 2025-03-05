@@ -61,6 +61,8 @@ namespace roboclaw_serial
             // Prevent parallel reads/writes
             std::lock_guard<std::mutex> lock(mutex_);
 
+            bool isDataValid = false;
+
             this->bufferSetupRead<Request>(address);
 
             auto cmd = Request::read_command;
@@ -144,6 +146,7 @@ namespace roboclaw_serial
                                 {
                                     // Extract the data
                                     std::apply([&](auto &&...args) { buffer_.unpack(args...); }, fields);
+                                    isDataValid = true;
                                 }
                             catch (const std::exception &e)
                                 {
@@ -152,6 +155,11 @@ namespace roboclaw_serial
                                 }
                         }
                 }
+            // if (!isDataValid)
+            //     {
+            //         int field_count = std::tuple_size<typename Request::ArgsTuple>::value;
+            //         for (int i = 0; i < field_count; i++) { fields[i] = 0; }
+            //     }
             return fields;
         }
 

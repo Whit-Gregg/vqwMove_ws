@@ -52,10 +52,15 @@ namespace roboclaw_hardware_interface
     {
         if (initialized_encoder_count_)
             {
+                int32_t encoder_count_change = encoder_count - prior_encoder_count_;
+
                 // Update the joint angle
-                position_state_ += static_cast<double>(encoder_count - prior_encoder_count_) / ticks_per_radian_;
+                position_state_ += static_cast<double>(encoder_count_change) / ticks_per_radian_;
                 // Update the total distance traveled
-                total_distance_meters += std::abs(static_cast<double>(encoder_count - prior_encoder_count_) / ticks_per_meter_);
+                total_distance_meters += std::abs(static_cast<double>(encoder_count_change) / ticks_per_meter_);
+
+                if (avg_encoder_count_change == 0) avg_encoder_count_change = encoder_count_change;
+                avg_encoder_count_change = (avg_encoder_count_change * (avg_encoder_count_change_span - 1) + encoder_count_change) / avg_encoder_count_change_span;
 
                 if (position_state_interface)
                     {

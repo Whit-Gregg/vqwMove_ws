@@ -43,10 +43,19 @@ namespace roboclaw_hardware_interface
 
         // Get constant references to fields in the encoder counts message
         const auto &[m1_ticks, m2_ticks] = encoder_state_.fields;
+        int32_t m1_ticks_nc = m1_ticks;
+        int32_t m2_ticks_nc = m2_ticks;
 
         // Convert tick counts to position states for each field if the corresponding joint exists
-        if (joints[0]) { joints[0]->setPositionState(m1_ticks); }
-        if (joints[1]) { joints[1]->setPositionState(m2_ticks); }
+        if (joints[0])
+            {
+                if (m1_ticks_nc == 0) { m1_ticks_nc = joints[0]->getProjectedEncoderCount(); }
+                joints[0]->setPositionState(m1_ticks_nc);
+            }
+        if (joints[1]) {  
+            if (m2_ticks_nc == 0) { m2_ticks_nc = joints[1]->getProjectedEncoderCount(); }
+            joints[1]->setPositionState(m2_ticks_nc);
+         }
 
         // Read the main battery voltage
         if (elap_since_last_MainBatteryVoltage > elap_since_last_MainBatteryVoltage_span)

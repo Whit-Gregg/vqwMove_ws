@@ -2,6 +2,7 @@ fuse_state_estimator_node:
   ros__parameters:
     # Fixed-lag smoother configuration
     ### see: https://github.com/locusrobotics/fuse/issues/179
+    ### see: https://github.com/locusrobotics/fuse/issues/223
 
     optimization_frequency: 10.0
     transaction_timeout: 0.05
@@ -37,24 +38,26 @@ fuse_state_estimator_node:
       topic: "odom"
       linear_velocity_dimensions: [ 'x' ]
       angular_velocity_dimensions: [ 'yaw' ]
-      twist_target_frame: base_footprint
+      twist_target_frame: base_footprint    ###  base_link
       position_dimensions: [ 'x', 'y' ]
       orientation_dimensions: [ 'yaw' ]
-      pose_target_frame: base_footprint
+      pose_target_frame: base_footprint    ###  base_link
       use_twist_covariance: true
       differential: true
       independent: false
+      tf_timeout: 0.1
 
     imu_sensor:
       topic: "imu"
       linear_acceleration_dimensions: [ 'x', 'y' ]
       angular_velocity_dimensions: [ 'yaw' ]
-      acceleration_target_frame: base_footprint
-      twist_target_frame: base_footprint
+      acceleration_target_frame: base_footprint    ###  base_link
+      twist_target_frame: base_footprint    ###  base_link
       orientation_dimensions: [ 'yaw' ]
-      orientation_target_frame: base_footprint
+      orientation_target_frame: base_footprint    ###  base_link
       differential: true
       independent: false
+      tf_timeout: 0.1
 
     publishers:
       filtered_publisher:
@@ -62,7 +65,7 @@ fuse_state_estimator_node:
 
     filtered_publisher:
       topic: "odom_filtered"
-      base_link_frame_id: "base_footprint"
+      base_link_frame_id: "base_footprint"    ###  base_link
       odom_frame_id: "odom"
       map_frame_id: "map"
       world_frame_id: "odom"

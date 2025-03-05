@@ -10,6 +10,7 @@ https://github.com/PickNikRobotics/rviz_visual_tools
     `colcon build --packages-select [package_name] --cmake-args -DCMAKE_BUILD_TYPE=Debug``
 
     export  RCUTILS_CONSOLE_OUTPUT_FORMAT="[{severtiy}] [{date_time_with_ms}] [{name}] [{function_name}] [{file_name}]:[{line_number}] [{message}]"
+    export  RCUTILS_CONSOLE_OUTPUT_FORMAT="[{severity}] [{date_time_with_ms}] [{name}] [{function_name}]  [{message}]"
     export  RCUTILS_CONSOLE_OUTPUT_FORMAT="[{severity}] [{date_time_with_ms}] [{name}] [{message}]"
 
 ros2 launch vqwbot_bringup minimal.launch.py
@@ -37,3 +38,17 @@ To accomplish this, you need to convert the output of scan matching (world to ba
 into a new transform (world to odom) by deducting the odom to base_link transform. 
 So scan matching would not publish world to base_link, but world to odom
 
+//-------------------------------------------------------------------
+2025-02-08
+
+[fixed_lag_smoother_node-8] [WARN] [2025-02-08 10:56:46.739] [fuse] [Could not transform message from odom to base_link. Error was Lookup would require extrapolation into the future.  Requested time 1739041006.738683 but the latest data is at time 1739041006.568093, when looking up transform from frame [odom] to frame [base_link]]
+[fixed_lag_smoother_node-8] [WARN] [2025-02-08 10:56:46.739] [fuse_state_estimator_node] [Cannot transform pose message with stamp 1739041006738683430 to pose target frame base_link]
+[fixed_lag_smoother_node-8] [WARN] [2025-02-08 10:56:46.739] [fuse] [Could not transform message from      base_footprint     to base_link.      Error was Lookup would require extrapolation into the future.  Requested time 1739041006.738683 but the latest data is at time 1739041006.568093, when looking up transform from frame [base_footprint] to frame [base_link]]
+
+
+[fixed_lag_smoother_node-8] [WARN] [2025-02-08 10:56:51.470] [fuse] [Failed to transform twist message with stamp 1739041011469822692. Cannot create constraint.]
+[fixed_lag_smoother_node-8] [WARN] [2025-02-08 10:56:51.758] [fuse] [Could not transform message from      odom   to   base_link.      Error was Lookup would require extrapolation into the future.  Requested time 1739041011.758292 but the latest data is at time 1739041011.672884, when looking up transform from frame [odom] to frame [base_link]]
+[fixed_lag_smoother_node-8] [WARN] [2025-02-08 10:56:51.758] [fuse_state_estimator_node] [Cannot transform pose message with stamp 1739041011758292062 to pose target frame base_link]
+
+
+[fixed_lag_smoother_node-8] [WARN] [2025-02-08 10:56:51.758] [fuse] [Could not transform message from base_footprint to base_link. Error was Lookup would require extrapolation into the future.  Requested time 1739041011.758292 but the latest data is at time 1739041011.672884, when looking up transform from frame [base_footprint] to frame [base_link]]

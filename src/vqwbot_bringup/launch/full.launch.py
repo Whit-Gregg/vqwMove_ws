@@ -22,5 +22,4 @@ def generate_launch_description():
     # )
     # ld.add_action(fuse_launch)
 
-
     return ld

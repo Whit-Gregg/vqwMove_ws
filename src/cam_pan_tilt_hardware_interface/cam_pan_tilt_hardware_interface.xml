@@ -1,0 +1,9 @@
+<library path="cam_pan_tilt_hardware_interface">
+  <class name="cam_pan_tilt_hardware_interface/CamPanTiltHardwareInterface"
+         type="cam_pan_tilt_hardware_interface::CamPanTiltHardwareInterface"
+         base_class_type="hardware_interface::ActuatorInterface">
+    <description>
+      PWM Hat Servo hardware interface for ros2_control.
+    </description>
+  </class>
+</library>

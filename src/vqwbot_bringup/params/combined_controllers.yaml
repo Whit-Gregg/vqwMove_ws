@@ -11,11 +11,14 @@ controller_manager:
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
+    position_controller:
+      type: position_controllers/JointGroupPositionController
+
 diffbot_base_controller:
   ros__parameters:
-    enable_odom_tf: false # <<===== if true, Publish odometry transform between 'odom' ==> 'base_link'  (odom_frame_id and base_frame_id)
+    enable_odom_tf: true # <<===== if true, Publish odometry transform between 'odom' ==> 'base_link'  (odom_frame_id and base_frame_id)
     odom_frame_id: odom
-    base_frame_id: base_footprint
+    base_frame_id: base_footprint    ###  base_link
 
     tf_frame_prefix_enable: false
     tf_frame_prefix: ""
@@ -47,15 +50,15 @@ diffbot_base_controller:
     # value of .NAN will de-activate the limit
     linear:
       x:
-        max_velocity: 4.0
-        max_acceleration: 0.1
-        min_acceleration: -0.5
+        max_velocity: .nan  # 4.0
+        max_acceleration: .nan  # 0.1
+        min_acceleration: .nan  # -0.5
         max_jerk: .nan
 
     angular:
       z:
-        max_velocity: 0.4
-        max_acceleration: 1.0
+        max_velocity:  .nan  # 0.4
+        max_acceleration: .nan  # 1.0
         max_jerk: .nan
 
 imu_sensor_broadcaster:
@@ -69,9 +72,27 @@ imu_sensor_broadcaster:
 
 joint_state_broadcaster:
   ros__parameters:
-    joints:
-    - left_wheel_joint
-    - right_wheel_joint
+    # # # joints:
+    # # # - left_wheel_joint
+    # # # - right_wheel_joint
+    # # # - camera_L_pan_joint
+    # # # - camera_L_tilt_joint
+    # # # - camera_R_pan_joint
+    # # # - camera_R_tilt_joint
+    # # # interfaces:
+    # # #   - position
+    # # #   - velocity
+
     publish_rate: 50.0
     use_stamped_joint_state: true
     use_stamped_transform: true
+
+position_controller:
+  ros__parameters:
+    update_rate: 50 # Hz
+    joints:
+    - camera_L_pan_joint
+    - camera_L_tilt_joint
+    - camera_R_pan_joint
+    - camera_R_tilt_joint
+    interface_name: position
