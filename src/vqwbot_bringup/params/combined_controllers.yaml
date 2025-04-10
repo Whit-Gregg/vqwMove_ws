@@ -16,7 +16,7 @@ controller_manager:
 
 diffbot_base_controller:
   ros__parameters:
-    enable_odom_tf: true # <<===== if true, Publish odometry transform between 'odom' ==> 'base_link'  (odom_frame_id and base_frame_id)
+    enable_odom_tf: false # <<===== if true, Publish odometry transform between 'odom' ==> 'base_link'  (odom_frame_id and base_frame_id)
     odom_frame_id: odom
     base_frame_id: base_footprint    ###  base_link
 

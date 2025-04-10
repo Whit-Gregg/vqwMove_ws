@@ -34,7 +34,7 @@
     <xacro:property name="wheel_from_centerline" value="${-base_width/2 - wheel_len/2}" />
     
     <!-- ======================================================================== -->
-    <link name="base_footprint">
+    <!-- <link name="base_footprint">
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
@@ -48,14 +48,15 @@
         </geometry>
         <material name="orange_transparent"/>
       </visual>
-    </link>
+    </link> -->
+    <!-- ======================================================================== -->
 
     <!-- ======================================================================== -->
-    <joint name="base_joint" type="fixed">
+    <!-- <joint name="base_joint" type="fixed">
       <parent link="base_footprint"/>
       <child link="base_link"/>
       <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
-    </joint>
+    </joint> -->
 
     <link name="base_link"> <!-- this is the main body's box -->
       <collision>
@@ -73,7 +74,28 @@
       </visual>
     </link>
 
-
+    <!-- ======================================================================== -->
+    <link name="base_footprint">
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${base_length} ${base_width} 0.001"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${base_length} ${base_width} 0.001"/>
+        </geometry>
+        <material name="orange_transparent"/>
+      </visual>
+    </link>
+    <!-- ======================================================================== -->
+    <joint name="base_footprint_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_footprint"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
     <!-- ======================================================================== -->
     <joint name="tail_joint" type="fixed">
       <parent link="base_link"/>
@@ -132,6 +154,7 @@
       <axis xyz="0 1 0"/>
       <dynamics damping="0.2"/>
     </joint>
+
     <link name="left_wheel">
       <collision>
         <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
@@ -157,6 +180,7 @@
       <axis xyz="0 1 0"/>
       <dynamics damping="0.2"/>
     </joint>
+
     <link name="right_wheel">
       <collision>
         <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
@@ -182,6 +206,7 @@
       <child link="caster_rear_wheel"/>
       <origin xyz="${caster_wheel_x_offset} 0 ${caster_wheel_radius - wheel_radius}" rpy="0 0 0"/>
     </joint>
+    
     <link name="caster_rear_wheel">
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0"/>

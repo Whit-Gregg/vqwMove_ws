@@ -38,26 +38,26 @@ fuse_state_estimator_node:
       topic: "odom"
       linear_velocity_dimensions: [ 'x' ]
       angular_velocity_dimensions: [ 'yaw' ]
-      twist_target_frame: base_footprint    ###  base_link
+      twist_target_frame: base_link    ###  base_link or base_footprint
       position_dimensions: [ 'x', 'y' ]
       orientation_dimensions: [ 'yaw' ]
-      pose_target_frame: base_footprint    ###  base_link
+      pose_target_frame: base_link    ###  base_link or base_footprint
       use_twist_covariance: true
       differential: true
       independent: false
-      tf_timeout: 0.1
+      tf_timeout: 0.2
 
     imu_sensor:
       topic: "imu"
       linear_acceleration_dimensions: [ 'x', 'y' ]
       angular_velocity_dimensions: [ 'yaw' ]
-      acceleration_target_frame: base_footprint    ###  base_link
-      twist_target_frame: base_footprint    ###  base_link
+      acceleration_target_frame: base_link    ###  base_link or base_footprint
+      twist_target_frame: base_link    ###  base_link or base_footprint
       orientation_dimensions: [ 'yaw' ]
-      orientation_target_frame: base_footprint    ###  base_link
+      orientation_target_frame: base_link    ###  base_link or base_footprint
       differential: true
       independent: false
-      tf_timeout: 0.1
+      tf_timeout: 0.2
 
     publishers:
       filtered_publisher:
@@ -65,7 +65,7 @@ fuse_state_estimator_node:
 
     filtered_publisher:
       topic: "odom_filtered"
-      base_link_frame_id: "base_footprint"    ###  base_link
+      base_link_frame_id: "base_link"    ###  base_link or base_footprint
       odom_frame_id: "odom"
       map_frame_id: "map"
       world_frame_id: "odom"

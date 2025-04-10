@@ -32,5 +32,11 @@ def generate_launch_description():
         [os.path.join(get_package_share_directory('vqwbot_bringup'), 'launch', 'fuse.launch.py')])
     )
     ld.add_action(fuse_launch)
+    
+    
+    slam_toolbox_launch = IncludeLaunchDescription(PythonLaunchDescriptionSource(
+        [os.path.join(get_package_share_directory('vqwbot_bringup'), 'launch', 'slam_toolbox.launch.py')])
+    )
+    ld.add_action(slam_toolbox_launch)
 
     return ld
