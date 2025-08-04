@@ -21,7 +21,7 @@ def generate_launch_description():
     slam_params_file = LaunchConfiguration('slam_params_file')
     ##log_level = LaunchConfiguration('log_level')
 
-    declare_log_level = DeclareLaunchArgument(name='log_level', default_value='INFO', description='the Logging level (default = INFO)')
+    declare_log_level = DeclareLaunchArgument(name='log_level', default_value='DEBUG', description='the Logging level (default = INFO)')
 
     declare_autostart_cmd = DeclareLaunchArgument(
         'autostart', default_value='true',
@@ -54,12 +54,13 @@ def generate_launch_description():
         ],
         package='slam_toolbox',
         ###executable='lifelong_slam_toolbox_node',
-        ###executable='async_slam_toolbox_node',
-        executable='map_and_localization_slam_toolbox_node',
+        executable='async_slam_toolbox_node',
+        ###executable='map_and_localization_slam_toolbox_node',
         name='slam_toolbox',
         output='both',
          remappings=[
-             ('odom','odom_filtered'),
+           ('/diffbot_base_controller/odom','odom'),
+###             ('odom','odom_filtered'),
          ],
          arguments=[
                      "--ros-args", "--log-level", LaunchConfiguration('log_level')

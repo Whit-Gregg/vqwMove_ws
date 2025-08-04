@@ -21,7 +21,8 @@
 #include <hardware_interface/system_interface.hpp>
 #include <memory>
 #include <string>
-#include "elapsedMillis.h"
+#include "elapsedMillis.hpp"
+#include <optional>
 
 namespace roboclaw_hardware_interface
 {
@@ -38,14 +39,14 @@ namespace roboclaw_hardware_interface
         hardware_interface::CommandInterface::SharedPtr velocity_command_interface;
 
         // Position of the wheel in radians
-        // double position_state_ = 0;
+        double position_state_ = 0;
         hardware_interface::StateInterface::SharedPtr position_state_interface;
 
         // Store the prior encoder count for updating position state
         int32_t prior_encoder_count_;
         bool    initialized_encoder_count_ = false;
 
-        double position_state_ = 0.0;
+        // double position_state_ = 0.0;
 
         int32_t qppr;
         double  total_distance_meters = 0.0;
@@ -82,14 +83,25 @@ namespace roboclaw_hardware_interface
         double get_velocity_command_value() const
         {
             double velocity = 0.0;
-            bool   ok       = velocity_command_interface->get_value(velocity);
-            if (!ok)
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("RoboclawHardwareInterface"),
-                                 "MotorJoint[%s]::get_velocity_command_value() Failed to get velocity command value.", name.c_str());
+            auto velocity_value = velocity_command_interface->get_optional<>();
+            if (velocity_value.has_value())
+            {
+                velocity = velocity_value.value();
+            }
+            else
+            {
+                RCLCPP_ERROR(rclcpp::get_logger("RoboclawHardwareInterface"),
+                             "MotorJoint[%s]::get_velocity_command_value() Failed to get velocity command value.", name.c_str());
+                throw std::runtime_error("Failed to get velocity command value for " + name);
+            }
+            // // // bool   ok       = velocity_command_interface->get_value(velocity);
+            // // // if (!ok)
+            // // //     {
+            // // //         RCLCPP_ERROR(rclcpp::get_logger("RoboclawHardwareInterface"),
+            // // //                      "MotorJoint[%s]::get_velocity_command_value() Failed to get velocity command value.", name.c_str());
 
-                    throw std::runtime_error("Failed to get velocity command for " + name);
-                }
+            // // //         throw std::runtime_error("Failed to get velocity command value for " + name);
+            // // //     }
             return velocity;
         }
         // void set_velocity_command(const double velocity_command)

@@ -31,6 +31,9 @@
 #include <mutex>
 #include <vector>
 
+#include "elapsedMillis.hpp"
+#include "value_distribution.hpp"
+
 #include "roboclaw_serial/command.hpp"
 #include "roboclaw_serial/crc.hpp"
 #include "roboclaw_serial/device.hpp"
@@ -51,17 +54,18 @@ namespace roboclaw_serial
         template<typename Request>
         void read(Request &request, const unsigned char address = 128)
         {
-            request.fields = read<Request>(address);
+            request.fields = read<Request>(read_timeout_ms_, address);
         }
 
         //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
         template<typename Request>
-        typename Request::ArgsTuple read(const unsigned char address = 128)
+        typename Request::ArgsTuple read(const long read_timeout, const unsigned char address = 128)
         {
             // Prevent parallel reads/writes
             std::lock_guard<std::mutex> lock(mutex_);
 
             bool isDataValid = false;
+            typename Request::ArgsTuple fields;
 
             this->bufferSetupRead<Request>(address);
 
@@ -70,10 +74,13 @@ namespace roboclaw_serial
             for (const auto &byte : buffer_) { crc16::update(crc_, byte); }
             //-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`
             bool isException = false;
+            bool isTimeOut   = false;
             try
                 {
                     // Write the buffer to the serial device
                     ssize_t sz = device_->write(buffer_.data(), buffer_.size());
+                    write_size_distribution.addValue(sz);
+                    total_bytes_written_ += sz;
                 }
             catch (const std::exception &e)
                 {
@@ -88,16 +95,35 @@ namespace roboclaw_serial
 
             //-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`
             std::size_t bytes_read = 0;
-            try
+            if (!isException)
                 {
-                    // Read the response from the device
-                    if (!isException) { bytes_read = device_->read(buffer_.data(), buffer_.size()); }
-                }
-            catch (const std::exception &e)
-                {
-                    auto log = rclcpp::get_logger("RoboclawSerialInterface");
-                    RCLCPP_ERROR(log, "roboclaw_serial::Interface::read(0x%02X,..) device_->read() exception: %s", cmd, e.what());
-                    isException = true;
+                    try
+                        {
+                            std::size_t   read_size            = getReadSize(fields);
+                            std::size_t   bytes_read_this_time = 0;
+                            elapsedMillis read_elap;
+                            // Read the response from the device
+                            while ((bytes_read < read_size) && (read_elap < read_timeout))
+                                {
+                                    const std::byte *buffer = buffer_.data() + bytes_read;
+                                    bytes_read_this_time    = device_->read(const_cast<std::byte *>(buffer), read_size - bytes_read);
+                                    read_size_distribution.addValue(bytes_read_this_time);
+                                    total_bytes_read_ += bytes_read_this_time;
+                                    bytes_read += bytes_read_this_time;
+                                }
+                            if (read_elap >= read_timeout)
+                                {
+                                    isTimeOut = true;
+                                    // auto log = rclcpp::get_logger("RoboclawSerialInterface");
+                                    // RCLCPP_ERROR(log, "roboclaw_serial::Interface::read(0x%02X,..) read timeout after %ld ms", cmd, read_timeout);
+                                }
+                        }
+                    catch (const std::exception &e)
+                        {
+                            auto log = rclcpp::get_logger("RoboclawSerialInterface");
+                            RCLCPP_ERROR(log, "roboclaw_serial::Interface::read(0x%02X,..) device_->read() exception: %s", cmd, e.what());
+                            isException = true;
+                        }
                 }
             //-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`-=+~`
             uint16_t recv_crc = 0xe2a8;
@@ -113,7 +139,6 @@ namespace roboclaw_serial
                     for (auto byte : buffer_) { crc16::update(crc_, byte); }
                 }
 
-            typename Request::ArgsTuple fields;
 
             // int field_count = std::tuple_size<typename Request::ArgsTuple>::value;
 
@@ -126,7 +151,7 @@ namespace roboclaw_serial
                     int64_t delay_millis = 10;
                     rclcpp::sleep_for(std::chrono::milliseconds(delay_millis));
 
-                    if ((total_crc_errors_ < 5) || ((total_crc_errors_ % total_crc_errors_MOD_) == 0))
+                    if ((total_crc_errors_ < 50) || ((total_crc_errors_ % total_crc_errors_MOD_) == 0))
                         {
                             total_crc_errors_MOD_    = total_crc_errors_MOD_ + 100;
                             double crc_error_percent = ((double)total_crc_errors_ / (double)total_reads_) * 100.0;
@@ -154,6 +179,21 @@ namespace roboclaw_serial
                                     RCLCPP_ERROR(log, "roboclaw_serial::Interface::read(0x%02X,..) buffer_.unpack() exception: %s", cmd, e.what());
                                 }
                         }
+                }
+
+            if ((crc_ != recv_crc) || (isException))
+                {
+                    long bytes_read_since_last_error    = total_bytes_read_ - total_bytes_read_at_last_error_;
+                    long bytes_written_since_last_error = total_bytes_written_ - total_bytes_written_at_last_error_;
+
+                    auto log = rclcpp::get_logger("RoboclawSerialInterface");
+                    RCLCPP_ERROR(log,
+                                 "roboclaw_serial::Interface::read(0x%02X,..) CRC error or exception, bytes_read=%ld, bytes_written=%ld, "
+                                 "bytes_read_since_last_error=%ld, bytes_written_since_last_error=%ld",
+                                 cmd, total_bytes_read_, total_bytes_written_, bytes_read_since_last_error, bytes_written_since_last_error);
+
+                    total_bytes_read_at_last_error_    = total_bytes_read_;
+                    total_bytes_written_at_last_error_ = total_bytes_written_;
                 }
             // if (!isDataValid)
             //     {
@@ -193,23 +233,42 @@ namespace roboclaw_serial
 
             // Write the request
             ssize_t bytes_written = device_->write(buffer_.data(), buffer_.size());
+            write_size_distribution.addValue(bytes_written);
+            total_bytes_written_ += bytes_written;
 
-            if (!this->readAck())
+            // delay 15 ms to allow the roboclaw to process the request
+            // rclcpp::sleep_for(std::chrono::milliseconds(15));
+
+            bool ACK_OK = this->readAck();
+            if (!ACK_OK)
                 {
                     consecutive_ack_errors_++;
                     total_ack_errors_++;
 
-                    // this delay cauases the Roboclaw to clear it's buffer
-                    int64_t delay_millis = 10;
-                    rclcpp::sleep_for(std::chrono::milliseconds(delay_millis));
+                    // // this delay cauases the Roboclaw to clear it's buffer
+                    // int64_t delay_millis = 10;
+                    // rclcpp::sleep_for(std::chrono::milliseconds(delay_millis));
 
-                    if ((total_ack_errors_ < 5) || ((total_ack_errors_ % 10) == 0))
+                    if ((total_ack_errors_ < 50) || ((total_ack_errors_ % 50) == 0))
                         {
                             double ack_error_percent = ((double)total_ack_errors_ / (double)total_writes_) * 100.0;
                             auto   log               = rclcpp::get_logger("RoboclawSerialInterface");
                             RCLCPP_INFO(log, "write( 0x%02X,..) did not get an ACK, consec=%d, total_err=%d total_good=%d  (%.3f %%)", cmd,
                                         consecutive_ack_errors_, total_ack_errors_, total_good_acks_, ack_error_percent);
                         }
+
+                    long bytes_read_since_last_error    = total_bytes_read_ - total_bytes_read_at_last_error_;
+                    long bytes_written_since_last_error = total_bytes_written_ - total_bytes_written_at_last_error_;
+
+                    auto log = rclcpp::get_logger("RoboclawSerialInterface");
+                    RCLCPP_ERROR(log,
+                                 "roboclaw_serial::Interface::write(0x%02X,..) CRC error or exception, bytes_read=%ld, bytes_written=%ld, "
+                                 "bytes_read_since_last_error=%ld, bytes_written_since_last_error=%ld",
+                                 cmd, total_bytes_read_, total_bytes_written_, bytes_read_since_last_error, bytes_written_since_last_error);
+
+                    total_bytes_read_at_last_error_    = total_bytes_read_;
+                    total_bytes_written_at_last_error_ = total_bytes_written_;
+
                     device_->restart();
                 }
             else
@@ -218,6 +277,35 @@ namespace roboclaw_serial
                     total_good_acks_++;
                     total_writes_++;
                 }
+        }
+
+        //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
+        void dump_distributions()
+        {
+            auto log = rclcpp::get_logger("RoboclawSerialInterface");
+            RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()-------------");
+
+            // read_size_distribution
+            RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()---  read_size_distribution  ----------");
+            for (int x = 0; x < read_size_distribution.MAX_VALUE; x++)
+                {
+                    long count = read_size_distribution.getValue(x);
+                    if (count > 0) { RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()---  read_size_distribution[%d] = %ld", x, count); }
+                }
+            RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()---  write_size_distribution  ----------");
+            for (int x = 0; x < write_size_distribution.MAX_VALUE; x++)
+                {
+                    long count = write_size_distribution.getValue(x);
+                    if (count > 0) { RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()---  write_size_distribution[%d] = %ld", x, count); }
+                }
+
+            RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()---  read_ACK_time_distribution  ----------");
+            for (int x = 0; x < read_ACK_time_distribution.MAX_VALUE; x++)
+                {
+                    long count = read_ACK_time_distribution.getValue(x);
+                    if (count > 0) { RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()---  read_ACK_time_distribution[%d] = %ld", x, count); }
+                }
+            RCLCPP_INFO(log, "roboclaw_serial::Interface::dump_distributions()------------- done -------------------");
         }
 
         //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
@@ -282,35 +370,83 @@ namespace roboclaw_serial
         }
 
         //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
-        bool readAck()
+        bool readAck(long timeout_ms = 50)
         {
             // We only expect an ACK from the roboclaw
             buffer_.resize(1);
-            device_->read(buffer_.data(), buffer_.size());
-
-            return buffer_.pop_back() == ACK;
+            int           bytes_read = 0;
+            elapsedMillis read_elap;
+            while ((bytes_read < 1) && (read_elap < timeout_ms))
+                {
+                    bytes_read = device_->read(buffer_.data(), buffer_.size());
+                    // Wait for the ACK
+                    if (bytes_read < 1)
+                        {
+                            // If we don't get an ACK, wait a bit and try again
+                            // This is to allow the roboclaw to process the request and send the ACK
+                            rclcpp::sleep_for(std::chrono::milliseconds(2));
+                        }
+                }
+            long read_time = read_elap;
+            read_ACK_time_distribution.addValue(read_time);
+            total_bytes_read_ += bytes_read;
+            bool retval = false;
+            if ((bytes_read > 0) && (buffer_.pop_back() == ACK)) { retval = true; }
+            return retval;
         }
 
         //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
-        const std::byte         ACK = std::byte(255U);
+        template<typename Tuple_t>
+        int getReadSize(const Tuple_t &tup)
+        {
+            int  sz       = 0;
+            std::apply([&sz](const auto&... tupleArgs) {
+                auto sumSizes = [&sz](const auto &item) {
+                    sz += sizeof(item);
+                };
+                (sumSizes(tupleArgs), ...);
+                // or use fold expression in C++17
+                // std::apply([&sz](const auto &...tupleArgs) {
+                //     (sz += sizeof(tupleArgs), ...);
+                // });
+            }, tup);
+
+            // auto sumSizes = [this](const auto &...items) { (sz += sizeof(items), ...); };
+            // std::apply(sumSizes, fields);
+            return sz + 2;       // 2 for the crc
+        }
+
+        //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
+        const std::byte         ACK              = std::byte(255U);
+        const long              read_timeout_ms_ = 50;       // Default read timeout in milliseconds
         uint16_t                crc_;
         SerialDevice::SharedPtr device_;
         SerializedBuffer<64>    buffer_;
         std::mutex              mutex_;
 
-        long total_reads_             = 0;
-        long total_writes_            = 0;
-        int  consecutive_crc_errors_  = 0;
-        int  total_crc_errors_        = 0;
-        int  total_crc_errors_MOD_    = 50;
-        int  consecutive_read_errors_ = 0;
-        int  total_read_errors_       = 0;
-        int  consecutive_ack_errors_  = 0;
-        int  total_ack_errors_        = 0;
-        int  total_good_acks_         = 0;
+        long total_reads_                       = 0;
+        long total_writes_                      = 0;
+        long total_bytes_written_               = 0;
+        long total_bytes_read_                  = 0;
+        long total_bytes_written_at_last_error_ = 0;
+        long total_bytes_read_at_last_error_    = 0;
+
+        // Error counters
+        int consecutive_crc_errors_  = 0;
+        int total_crc_errors_        = 0;
+        int total_crc_errors_MOD_    = 50;
+        int consecutive_read_errors_ = 0;
+        int total_read_errors_       = 0;
+        int consecutive_ack_errors_  = 0;
+        int total_ack_errors_        = 0;
+        int total_good_acks_         = 0;
 
         const int max_consecutive_errors_                = 30000;
         const int max_consecutive_errors_before_restart_ = 2;
+
+        vqw::ValueDistribution read_size_distribution;
+        vqw::ValueDistribution write_size_distribution;
+        vqw::ValueDistribution read_ACK_time_distribution;
     };
 
 }       // namespace roboclaw_serial

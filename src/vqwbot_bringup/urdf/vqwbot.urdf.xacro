@@ -20,6 +20,9 @@
   <!-- Import camera_urdf macro -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/camera.urdf.xacro" />
 
+  <!-- Import argus_camera_urdf macro -->
+  <xacro:include filename="$(find vqwbot_bringup)/urdf/argus_camera.urdf.xacro" />
+
   <!-- Import servo_ros2_control macro -->
   <xacro:include filename="$(find vqwbot_bringup)/urdf/servo_ros2_control.xacro" />
 
@@ -32,6 +35,9 @@
 
   <xacro:camera_urdf prefix="L" y_multiplier="1" />
   <xacro:camera_urdf prefix="R" y_multiplier="-1" />
+
+  <xacro:argus_camera_urdf prefix="L" y_multiplier="1" />
+  <xacro:argus_camera_urdf prefix="R" y_multiplier="-1" />
 
   <xacro:roboclaw_ros2_control name="roboclaw_controller" />
 

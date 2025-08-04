@@ -14,7 +14,9 @@
   <depend>rclcpp_components</depend>
   <depend>rmw</depend>
   <depend>std_msgs</depend>
-  
+  <depend>vqw_util</depend>
+
   <test_depend>gtest</test_depend>
 
 </package>
+  

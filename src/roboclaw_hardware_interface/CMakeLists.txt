@@ -20,6 +20,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(roboclaw_serial REQUIRED)
 find_package(backward_ros REQUIRED)
+#find_package(vqw_util REQUIRED)
 
 pluginlib_export_plugin_description_file(hardware_interface roboclaw_hardware_interface.xml)
 
@@ -33,7 +34,7 @@ add_library(${PROJECT_NAME} SHARED
   src/roboclaw_hardware_interface.cpp
   src/roboclaw_unit.cpp
   src/motor_joint.cpp
-  src/elapsedMillis.cpp
+  ###src/elapsedMillis.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} roboclaw_serial)

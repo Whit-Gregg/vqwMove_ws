@@ -10,7 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 
-add_library(vqw_util src/vqw_util.cpp)
+add_library(vqw_util src/vqw_util.cpp )
 add_library(vqw_util::vqw_util ALIAS vqw_util)
 target_compile_features(vqw_util PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
@@ -22,6 +22,8 @@ ament_target_dependencies(
   vqw_util
   "rclcpp"
 )
+
+ament_export_include_directories(  include )
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.

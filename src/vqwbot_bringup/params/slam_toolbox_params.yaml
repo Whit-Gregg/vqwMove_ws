@@ -7,7 +7,7 @@ slam_toolbox:
     ceres_preconditioner: SCHUR_JACOBI
     ceres_trust_strategy: LEVENBERG_MARQUARDT
     ceres_dogleg_type: TRADITIONAL_DOGLEG
-    ceres_loss_function: None    ##  or HuberLoss
+    ceres_loss_function: None ##  or HuberLoss
 
     # ROS Parameters
     odom_frame: odom
@@ -15,7 +15,7 @@ slam_toolbox:
     base_frame: base_link
     scan_topic: /scan
     use_map_saver: true
-    mode: mapping   ## ?? lifelong
+    mode: mapping ## ?? lifelong
 
     # lifelong params
     lifelong_search_use_tree: false
@@ -31,18 +31,18 @@ slam_toolbox:
     # or at the dock, but they are mutually exclusive, if pose is given
     # will use pose
     map_file_name: ~/vqwSlam_ws/slam_map
-    map_start_pose: [0.0, 0.0, 0.0]
+    map_start_pose: [ 0.0, 0.0, 0.0 ]
     #map_start_at_dock: true
 
     debug_logging: true
     throttle_scans: 1
-    transform_publish_period: 0.02 #if 0 never publishes odometry
+    transform_publish_period: 0.07 #if 0 never publishes odometry, 0.02 is too fast..
     map_update_interval: 5.0
     resolution: 0.05
     max_laser_range: 20.0 #for rastering images
     minimum_time_interval: 0.5
     transform_timeout: 0.2
-    tf_buffer_duration: 10.
+    tf_buffer_duration: 10
     stack_size_to_use: 40000000 #// program needs a larger stack size to serialize large maps
 
     ## https://github.com/SteveMacenski/slam_toolbox/wiki/Experimental-Lifelong-Mapping-Node
@@ -83,4 +83,3 @@ slam_toolbox:
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5
     use_response_expansion: true
-    

@@ -26,7 +26,7 @@ def generate_launch_description():
     ld.add_action(launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='False', description='Flag to enable use_sim_time'))
     ld.add_action(launch.actions.DeclareLaunchArgument(name='fuse_params', default_value=default_fuse_params_path, description='Absolute path to [fuse] params file'))
     ld.add_action(launch.actions.DeclareLaunchArgument(name='log_level', default_value='INFO', description='the Logging level'))
-    ld.add_action(launch.actions.DeclareLaunchArgument(name='tf_timeout', default_value='40000000.0', description='the timeout waiting for a transform to be available'))
+    ld.add_action(launch.actions.DeclareLaunchArgument(name='tf_timeout', default_value='400000000.0', description='the timeout waiting for a transform to be available'))
 
     fuse_node = launch_ros.actions.Node(
          package='fuse_optimizers',

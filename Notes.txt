@@ -1,3 +1,10 @@
+
+[fixed_lag_smoother_node-10] [ERROR] [2025-04-10 16:47:28.497] [fuse] [Invalid partial differential pose measurement 
+        using the twist covariance from 'imu_sensor' source: Invalid partial mean [nan]
+
+
+
+
 https://github.com/PickNikRobotics/generate_parameter_library
 
 https://github.com/PickNikRobotics/ros_control_boilerplate

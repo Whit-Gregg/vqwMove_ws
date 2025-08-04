@@ -55,8 +55,11 @@ namespace cam_pan_tilt_hardware_interface
     {
         RCLCPP_INFO(rclcpp::get_logger("cam_pan_tilt_hardware_interface"), "CamPanTiltHardwareInterface[%s]::on_configure()....", my_name.c_str());
         if (ActuatorInterface::on_configure(previous_state) != CallbackReturn::SUCCESS) { return CallbackReturn::ERROR; }
+        RCLCPP_INFO(rclcpp::get_logger("cam_pan_tilt_hardware_interface"), "CamPanTiltHardwareInterface[%s]::on_configure()  ActuatorInterface::on_configure() finished.", my_name.c_str());
 
         bool ok = open_servo_driver();
+        RCLCPP_INFO(rclcpp::get_logger("cam_pan_tilt_hardware_interface"), "CamPanTiltHardwareInterface[%s]::on_configure()  open_servo_driver() isOK = %s", my_name.c_str(), 
+                    ok ? "true" : "false");
         if (!ok)
             {
                 RCLCPP_ERROR(rclcpp::get_logger("cam_pan_tilt_hardware_interface"),
@@ -192,7 +195,11 @@ namespace cam_pan_tilt_hardware_interface
                 double value = 0;
                 if (servo.cmd_if == nullptr) { continue; }
                 if (servo.state_if == nullptr) { continue; }
-                if (!servo.cmd_if->get_value(value)) { continue; }
+                //if (!servo.cmd_if->get_value(value)) { continue; }
+                auto val = servo.cmd_if->get_optional<double>();
+                if (!val) { continue; }
+                value = *val;
+
                 if (std::isnan(value)) continue;
                 if (value != servo.position)
                     {

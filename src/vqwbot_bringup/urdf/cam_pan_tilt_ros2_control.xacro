@@ -9,11 +9,11 @@
           <param name="i2c_device">/dev/i2c-1</param>
       </hardware>
 
-      <xacro:servo_ros2_control joint_name="camera_L_pan_joint" channel="12" offset="0.4" />
-      <xacro:servo_ros2_control joint_name="camera_L_tilt_joint" channel="13" offset="0.1" />
+      <xacro:servo_ros2_control joint_name="camera_L_pan_joint" channel="1" offset="0.4" />
+      <xacro:servo_ros2_control joint_name="camera_L_tilt_joint" channel="2" offset="0.1" />
 
-      <xacro:servo_ros2_control joint_name="camera_R_pan_joint" channel="14" offset="-0.1" />
-      <xacro:servo_ros2_control joint_name="camera_R_tilt_joint" channel="15" offset="0.0" />
+      <xacro:servo_ros2_control joint_name="camera_R_pan_joint" channel="3" offset="-0.1" />
+      <xacro:servo_ros2_control joint_name="camera_R_tilt_joint" channel="4" offset="0.0" />
 
     </ros2_control>
 

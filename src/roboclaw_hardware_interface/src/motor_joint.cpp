@@ -56,6 +56,7 @@ namespace roboclaw_hardware_interface
 
                 // Update the joint angle
                 position_state_ += static_cast<double>(encoder_count_change) / ticks_per_radian_;
+
                 // Update the total distance traveled
                 total_distance_meters += std::abs(static_cast<double>(encoder_count_change) / ticks_per_meter_);
 

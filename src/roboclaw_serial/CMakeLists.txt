@@ -13,9 +13,14 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(rmw REQUIRED)
 find_package(std_msgs REQUIRED)
+##find_package(vqw_util REQUIRED)
 
 find_package(backward_ros REQUIRED)
 
+# Include directories
+include_directories(
+  include
+)
 
 # Define the header-only library
 add_library(roboclaw_serial INTERFACE)
@@ -24,6 +29,12 @@ target_include_directories(roboclaw_serial INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+## target_link_libraries(${PROJECT_NAME} INTERFACE vqw_util)
+
+# Add library dependencies
+##ament_target_dependencies(${PROJECT_NAME} INTERFACE vqw_util)
+
 
 # Install the headers
 install(DIRECTORY include/roboclaw_serial

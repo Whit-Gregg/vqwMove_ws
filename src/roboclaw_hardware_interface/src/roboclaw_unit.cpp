@@ -32,6 +32,17 @@ namespace roboclaw_hardware_interface
         // Set motor joint configurations
         joints[0] = m1;
         joints[1] = m2;
+
+        // // auto log = rclcpp::get_logger("RoboclawHardwareInterface");
+
+        // // int sz_tick_rate = getReadSize(tick_rate_command_.fields);
+        // // RCLCPP_INFO(log, "RoboClawUnit::RoboClawUnit()  sz_tick_rate = %d", sz_tick_rate);
+        // // int sz_encoder_state = getReadSize(encoder_state_.fields);
+        // // RCLCPP_INFO(log, "RoboClawUnit::RoboClawUnit()  sz_encoder_state = %d", sz_encoder_state);
+        // // int sz_main_battery_voltage = getReadSize(main_battery_voltage_.fields);
+        // // RCLCPP_INFO(log, "RoboClawUnit::RoboClawUnit()  sz_main_battery_voltage = %d", sz_main_battery_voltage);
+        // // int sz_firmware_version = getReadSize(firmware_version_.fields);
+        // // RCLCPP_INFO(log, "RoboClawUnit::RoboClawUnit()  sz_firmware_version = %d", sz_firmware_version);
     }
 
     // Read the encoder counts from the roboclaw and update position state
@@ -67,6 +78,13 @@ namespace roboclaw_hardware_interface
                 RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "RoboClawUnit::read()  Main Battery Voltage = %.1f", voltage_F);
                 main_battery_voltage_in_10ths_of_volts = voltage;
             }
+            
+        // dump distributions every 2 minutes
+        if (elap_since_last_dump_distributions > elap_since_last_dump_distributions_span)
+            {
+                elap_since_last_dump_distributions = 0;
+                interface_->dump_distributions();
+            }
     }
 
     // Write the tick rate request to the roboclaw and update
@@ -94,6 +112,10 @@ namespace roboclaw_hardware_interface
 
     void RoboClawUnit::read_firmware_version()
     {
+
+        //int tick_size = tick_rate_command_.getReadSize();
+
+
         // Read the firmware version from the roboclaw
         interface_->read(firmware_version_, address_);
         const auto &[version] = firmware_version_.fields;

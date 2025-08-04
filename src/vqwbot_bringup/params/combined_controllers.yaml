@@ -1,6 +1,6 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100 # Hz
+    update_rate: 50 # Hz
 
     diffbot_base_controller:
       type: diff_drive_controller/DiffDriveController
@@ -18,7 +18,7 @@ diffbot_base_controller:
   ros__parameters:
     enable_odom_tf: false # <<===== if true, Publish odometry transform between 'odom' ==> 'base_link'  (odom_frame_id and base_frame_id)
     odom_frame_id: odom
-    base_frame_id: base_footprint    ###  base_link
+    base_frame_id: base_footprint ###  base_link
 
     tf_frame_prefix_enable: false
     tf_frame_prefix: ""
@@ -33,7 +33,7 @@ diffbot_base_controller:
     left_wheel_radius_multiplier: 1.0
     right_wheel_radius_multiplier: 1.0
 
-    publish_rate: 50.0 ## Hz    (for odometry msg and tf)
+    publish_rate: 50.0 ## Hz    (for odometry msg and tf) (50 Hz is the minimum value)
 
     pose_covariance_diagonal: [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.01 ]
     twist_covariance_diagonal: [ 0.001, 0.001, 0.001, 0.001, 0.001, 0.01 ]
@@ -50,15 +50,15 @@ diffbot_base_controller:
     # value of .NAN will de-activate the limit
     linear:
       x:
-        max_velocity: .nan  # 4.0
-        max_acceleration: .nan  # 0.1
-        min_acceleration: .nan  # -0.5
+        max_velocity: .nan # 4.0
+        max_acceleration: .nan # 0.1
+        min_acceleration: .nan # -0.5
         max_jerk: .nan
 
     angular:
       z:
-        max_velocity:  .nan  # 0.4
-        max_acceleration: .nan  # 1.0
+        max_velocity: .nan # 0.4
+        max_acceleration: .nan # 1.0
         max_jerk: .nan
 
 imu_sensor_broadcaster:

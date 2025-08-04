@@ -18,6 +18,8 @@
 #include <string>
 #include <tuple>
 
+#include "serialized_buffer.hpp"
+
 namespace roboclaw_serial
 {
 
@@ -179,6 +181,14 @@ struct Request
   static bool canRead() {return ReadCommand != Command::NONE;}
 
   static bool canWrite() {return WriteCommand != Command::NONE;}
+
+  int getReadSize()
+  {
+    SerializedBuffer<64>    temp_buffer;
+    temp_buffer.clear();
+    std::apply([&](auto &&...args) { temp_buffer.unpack(args...); }, fields);
+    return temp_buffer.size() + 2;  // +2 for the CRC
+  }
 
   ArgsTuple fields;
 };

@@ -25,6 +25,9 @@
 #define elapsedMillis_h
 #ifdef __cplusplus
 
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/clock.hpp>
+
 
 // elapsedMillis acts as an integer which autoamtically increments 1000 times
 // per second.  Useful for creating delays, timeouts, or measuing how long an
@@ -35,7 +38,13 @@ class elapsedMillis
 {
 private:
 	unsigned long ms;
-	unsigned long millis() const;
+	unsigned long millis() const
+		{
+        auto ros_time = (rclcpp::Clock(RCL_ROS_TIME).now());
+        unsigned long time_ms = (unsigned long)(ros_time.nanoseconds() / 1000000);
+        return time_ms;
+	}
+
 public:
 	elapsedMillis(void) { ms = millis(); }
 	elapsedMillis(unsigned long val) { ms = millis() - val; }
@@ -63,7 +72,13 @@ class elapsedMicros
 {
 private:
 	unsigned long long us;
-	unsigned long long micros() const;
+	unsigned long long micros() const
+		{
+        auto ros_time = (rclcpp::Clock(RCL_ROS_TIME).now());
+        unsigned long long time_us = (unsigned long long)(ros_time.nanoseconds() );
+        return time_us;
+	}
+
 public:
 	elapsedMicros(void) { us = micros(); }
 	elapsedMicros(unsigned long val) { us = micros() - val; }

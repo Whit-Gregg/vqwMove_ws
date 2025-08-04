@@ -36,7 +36,11 @@ namespace roboclaw_serial
 
         SerialDevice() = default;
 
-        explicit SerialDevice(const std::string device) { connect(device); }
+        explicit SerialDevice(const std::string device, int read_timeout_ms = 100)
+        {
+            set_read_timeout(read_timeout_ms);
+            connect(device);
+        }
         virtual ~SerialDevice() { disconnect(); }
 
         //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
@@ -51,10 +55,7 @@ namespace roboclaw_serial
                     device_name_ = device;
                     setSerialDeviceOptions();
                 }
-            else
-                {
-                    RCLCPP_ERROR(rclcpp::get_logger("RoboclawSerialDevice"), "connect(\"%s\") FAILED!! errno=%d  %s", device.c_str(), errno, strerror(errno));
-                }
+            else { RCLCPP_ERROR(rclcpp::get_logger("RoboclawSerialDevice"), "connect(\"%s\") FAILED!! errno=%d  %s", device.c_str(), errno, strerror(errno)); }
 
             info_count++;
             if ((info_count < 10) || (info_count % info_count_span == 0) || (fd_ == -1))
@@ -114,12 +115,13 @@ namespace roboclaw_serial
         }
 
         //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
+        void set_read_timeout(int timeout_ms) { read_timeout_ms_ = timeout_ms; }
+
+        //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
 
       private:
         void setSerialDeviceOptions()
         {
-            const int read_timeout_ms = 100;
-
             struct termios options;
             int            rc = tcgetattr(fd_, &options);
             if (rc != 0)
@@ -132,7 +134,7 @@ namespace roboclaw_serial
             cfsetspeed(&options, B38400);
 
             options.c_cc[VMIN]  = 0;
-            options.c_cc[VTIME] = (cc_t)read_timeout_ms / 100;
+            options.c_cc[VTIME] = (cc_t)read_timeout_ms_ / 100;
 
             rc = tcsetattr(fd_, TCSANOW, &options);
             if (rc != 0)
@@ -183,8 +185,9 @@ namespace roboclaw_serial
 
         int         fd_ = -1;
         std::string device_name_;
-        long        info_count      = 0;
-        long        info_count_span = 100;
+        int         read_timeout_ms_ = 100;       // Default read timeout in milliseconds
+        long        info_count       = 0;
+        long        info_count_span  = 100;
     };
 
 }       // namespace roboclaw_serial
