@@ -232,12 +232,20 @@ namespace roboclaw_serial
             this->bufferSetupWrite<Request>(address, fields);
 
             // Write the request
-            ssize_t bytes_written = device_->write(buffer_.data(), buffer_.size());
-            write_size_distribution.addValue(bytes_written);
-            total_bytes_written_ += bytes_written;
+            ssize_t buf_size = buffer_.size();
+            ssize_t bytes_written = device_->write(buffer_.data(), buf_size);
+            write_size_distribution.addValue(buf_size);
+            total_bytes_written_ += buf_size;
 
-            // delay 15 ms to allow the roboclaw to process the request
-            // rclcpp::sleep_for(std::chrono::milliseconds(15));
+            // if (cmd == (uint8_t)Command::DRIVE_M1_M2_SGN_SPD)
+            //     {
+            //         auto log = rclcpp::get_logger("RoboclawSerialInterface");
+            //         std::string request_str = this->getRequestAsString<Request>(fields);
+            //         RCLCPP_INFO(log, "roboclaw_serial::Interface::write(...) cmd:0x%02X  request: %s", cmd, request_str.c_str());
+            //     }
+
+            // // // // // // // delay 15 ms to allow the roboclaw to process the request
+            // // // // // // // rclcpp::sleep_for(std::chrono::milliseconds(15));
 
             bool ACK_OK = this->readAck();
             if (!ACK_OK)
@@ -393,6 +401,18 @@ namespace roboclaw_serial
             bool retval = false;
             if ((bytes_read > 0) && (buffer_.pop_back() == ACK)) { retval = true; }
             return retval;
+        }
+
+        //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
+        template<typename Request>
+        std::string getRequestAsString(const typename Request::ArgsTuple &fields)
+        {
+            std::ostringstream oss;
+            //oss << "Request: " << Request::name << " | ";
+            std::apply([&oss](const auto&... tupleArgs) {
+                ((oss << tupleArgs << " | "), ...);
+            }, fields);
+            return oss.str();
         }
 
         //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~

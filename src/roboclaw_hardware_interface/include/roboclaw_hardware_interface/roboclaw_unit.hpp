@@ -19,6 +19,7 @@
 #include "roboclaw_hardware_interface/motor_joint.hpp"
 #include <roboclaw_serial/command.hpp>
 #include <roboclaw_serial/interface.hpp>
+#include <roboclaw_serial/value_distribution.hpp>
 
 #include "roboclaw_hardware_interface/elapsedMillis.hpp"
 
@@ -78,6 +79,8 @@ namespace roboclaw_hardware_interface
         std::int32_t m2_actual_speed_in_ticks_previous = 0;       // speed per interval
         int          skip_count_                       = 0;
         const int    skip_count_max                    = 50;
+        std::int32_t m1_ticks_nc_previous          = 0;       // encoder count in ticks
+        std::int32_t m2_ticks_nc_previous          = 0;       // encoder count in ticks
 
         double m1_total_distance_meters = 0.0;
         double m2_total_distance_meters = 0.0;
@@ -91,15 +94,35 @@ namespace roboclaw_hardware_interface
         elapsedMillis elap_since_last_dump_distributions;
         uint32_t      elap_since_last_dump_distributions_span = 1000 * 60 * 2;       // 2 minutes
 
+        elapsedMillis elap_since_last_Roboclaw_Status;
+        uint32_t      elap_since_last_Roboclaw_Status_span = 1000 * 10;       // 10 seconds
+        std::string roboclaw_status_as_string(uint32_t status);
+        uint32_t roboclaw_status_previous = 0;
+        int roboclaw_status_display_count = 0;
+
+        elapsedMillis elap_since_InstantaneousSpeeds;
+        uint32_t      elap_since_InstantaneousSpeeds_span = 1000 * 5;       // 5 seconds
+
+        elapsedMillis elap_since_ticks_display;
+        uint32_t      elap_since_ticks_display_span = 200;       // 0.2 seconds
+
         bool should_skip();
 
         int main_battery_voltage_in_10ths_of_volts = 0;
 
+        vqw::ValueDistribution read_time_distribution;
+        vqw::ValueDistribution write_time_distribution;
+        void dump_distributions();
+
         // RoboClaw serial driver messages
         roboclaw_serial::DriveM1M2WithSignedSpeed tick_rate_command_;
+        roboclaw_serial::DriveM1M2WithSignedSpeed m1_tick_rate_command_;
+        roboclaw_serial::DriveM1M2WithSignedSpeed m2_tick_rate_command_;
         roboclaw_serial::EncoderCounters          encoder_state_;
         roboclaw_serial::FirmwareVersion          firmware_version_;
         roboclaw_serial::MainBatteryVoltage       main_battery_voltage_;
+        roboclaw_serial::RoboclawStatus           roboclaw_status_;
+        roboclaw_serial::InstantaneousSpeeds      instantaneous_speeds_;
     };
 }       // namespace roboclaw_hardware_interface
 

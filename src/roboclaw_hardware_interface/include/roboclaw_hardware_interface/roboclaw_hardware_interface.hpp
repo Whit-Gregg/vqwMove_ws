@@ -57,7 +57,9 @@ namespace roboclaw_hardware_interface
          * \returns CallbackReturn::SUCCESS if required data are provided and can be parsed.
          * \returns CallbackReturn::ERROR if any error happens or data are missing.
          */
-        CallbackReturn on_init(const HardwareInfo &hardware_info) override;
+        //CallbackReturn on_init(const hardware_interface::HardwareInfo &hardware_info) override;
+
+        CallbackReturn on_init(const hardware_interface::HardwareComponentInterfaceParams &params) override;
 
         /// Exports all state interfaces for this hardware interface.
         /**

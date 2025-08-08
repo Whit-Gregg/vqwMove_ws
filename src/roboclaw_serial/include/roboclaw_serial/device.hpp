@@ -91,12 +91,17 @@ namespace roboclaw_serial
         virtual ssize_t write(const std::byte *buffer, std::size_t count)
         {
             ssize_t result = ::write(fd_, buffer, count);
+            ssize_t count_signed = static_cast<ssize_t>(count);
             if (result < 0)
                 {
                     // Error writing to device
                     throw std::range_error("Error writing to the serial device!");
                 }
-            return static_cast<ssize_t>(result) == count;
+            if (result != count_signed) {
+                RCLCPP_ERROR(rclcpp::get_logger("RoboclawSerialDevice"),
+                             "roboclaw_serial::SerialDevice::write() wrote %ld bytes, expected %ld bytes", result, count_signed);
+                }
+            return result;
         }
 
         //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
@@ -120,6 +125,19 @@ namespace roboclaw_serial
         //-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~-=+~
 
       private:
+        void dump_cmd(const std::byte *buffer, std::size_t count)
+        {
+            std::ostringstream oss;
+            for (std::size_t i = 0; i < count; ++i)
+            {
+                oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(buffer[i]);
+                if (i < count - 1)
+                    oss << " ";
+            }
+            RCLCPP_INFO(rclcpp::get_logger("RoboclawSerialDevice"), "Sending command: %s", oss.str().c_str());
+        }
+
+
         void setSerialDeviceOptions()
         {
             struct termios options;

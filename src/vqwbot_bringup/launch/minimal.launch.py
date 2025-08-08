@@ -54,7 +54,7 @@ def generate_launch_description():
         #arguments=["--ros-args", "--log-level", "DEBUG"],
         #parameters=[robot_description, robot_controllers_path],
         parameters=[robot_controllers_path],
-        remappings=remappings,
+        ##remappings=remappings,   ##  <<---- use the '--controller-ros-args' argument of the spawner   
         output="both",
     )
     ld.add_action(ros2_control_node)
@@ -82,8 +82,14 @@ def generate_launch_description():
         package="controller_manager",
         executable="spawner",
         name="DiffDriveController",
-        arguments=["diffbot_base_controller", "--controller-manager", "/controller_manager"],
+        arguments=[
+                   "diffbot_base_controller", # This is the name of the controller in the YAML file
+                   "-c", "/controller_manager",
+                   "--controller-ros-args", "-r /diffbot_base_controller/cmd_vel:=/cmd_vel",
+                   "--controller-ros-args", "--log-level DEBUG",
+                   ],
         output="both",
+        # use --controller-ros-args
     )
     ld.add_action(diffbot_base_controller_spawner)
     

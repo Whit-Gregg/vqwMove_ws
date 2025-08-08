@@ -21,10 +21,15 @@
 
 namespace roboclaw_hardware_interface
 {
-    //-------------------------------------------------------------------------------------
-    CallbackReturn RoboClawHardwareInterface::on_init(const HardwareInfo &hardware_info)
+    CallbackReturn RoboClawHardwareInterface::on_init(const hardware_interface::HardwareComponentInterfaceParams &params)
     {
-        CallbackReturn ret = hardware_interface::SystemInterface::on_init(hardware_info);
+        const HardwareInfo &hardware_info = params.hardware_info;
+    // }
+    // //-------------------------------------------------------------------------------------
+    // CallbackReturn RoboClawHardwareInterface::on_init(const HardwareInfo &hardware_info)
+    // {
+
+        CallbackReturn ret = hardware_interface::SystemInterface::on_init(params);
         if (ret != CallbackReturn::SUCCESS)
             {
                 RCLCPP_ERROR(rclcpp::get_logger("RoboclawHardwareInterface"),
@@ -79,7 +84,7 @@ namespace roboclaw_hardware_interface
                     {
                         if (joint)
                             {
-                                RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "Joint = %s    or %s", joint_name.c_str(), joint->name.c_str());
+                                RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "    Joint = %s    or %s", joint_name.c_str(), joint->name.c_str());
                             }
                     }
             }

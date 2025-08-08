@@ -48,6 +48,8 @@ namespace roboclaw_hardware_interface
     // Read the encoder counts from the roboclaw and update position state
     void RoboClawUnit::read()
     {
+        elapsedMillis elap_read;
+
         // Read and update position
         interface_->read(encoder_state_, address_);
         read_count_++;
@@ -68,6 +70,28 @@ namespace roboclaw_hardware_interface
             joints[1]->setPositionState(m2_ticks_nc);
          }
 
+        // Display the tick counts every 200 ms
+        if (elap_since_ticks_display > elap_since_ticks_display_span) {
+                int32_t elap = elap_since_ticks_display;
+            elap_since_ticks_display = 0;
+         if (m1_ticks_nc!=0 && m2_ticks_nc!=0){
+            if (m1_ticks_nc != m1_ticks_nc_previous || m2_ticks_nc != m2_ticks_nc_previous)
+            {
+                elap_since_ticks_display = 0;
+                int32_t m1_ticks_diff = m1_ticks_nc - m1_ticks_nc_previous;
+                int32_t m2_ticks_diff = m2_ticks_nc - m2_ticks_nc_previous;
+                double elap_sec = elap / 1000.0;
+                if (elap_sec == 0) { elap_sec = 0.001; }
+                double m1_tickRate = m1_ticks_diff / elap_sec;
+                double m2_tickRate = m2_ticks_diff / elap_sec;
+                auto log = rclcpp::get_logger("RoboclawHardwareInterface");
+                RCLCPP_INFO(log, "RoboClawUnit::read()  m1_ticks=%d, m2_ticks=%d, m1_ticks_diff=%d, m2_ticks_diff=%d, m1_tickRate=%.1f, m2_tickRate=%.1f, elap=%.3f seconds",
+                            m1_ticks_nc, m2_ticks_nc, m1_ticks_diff, m2_ticks_diff, m1_tickRate, m2_tickRate, elap_sec);
+                m1_ticks_nc_previous = m1_ticks_nc;
+                m2_ticks_nc_previous = m2_ticks_nc;
+            }
+        }
+    }
         // Read the main battery voltage
         if (elap_since_last_MainBatteryVoltage > elap_since_last_MainBatteryVoltage_span)
             {
@@ -78,44 +102,88 @@ namespace roboclaw_hardware_interface
                 RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "RoboClawUnit::read()  Main Battery Voltage = %.1f", voltage_F);
                 main_battery_voltage_in_10ths_of_volts = voltage;
             }
-            
+
+        if (elap_since_last_Roboclaw_Status > elap_since_last_Roboclaw_Status_span)
+            {
+                elap_since_last_Roboclaw_Status = 0;
+                
+                interface_->read(roboclaw_status_, address_);
+                const auto &[status] = roboclaw_status_.fields;
+                if (( status != roboclaw_status_previous )|| (roboclaw_status_display_count % 10 == 0)) {
+                    std::string status_str = roboclaw_status_as_string(status);
+                    RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "RoboClawUnit::read()  Roboclaw Status = 0x%X (%s)", status, status_str.c_str());
+                }
+                roboclaw_status_previous = status;
+                roboclaw_status_display_count++;
+            }
+
         // dump distributions every 2 minutes
         if (elap_since_last_dump_distributions > elap_since_last_dump_distributions_span)
             {
                 elap_since_last_dump_distributions = 0;
                 interface_->dump_distributions();
+                dump_distributions();
             }
-    }
+
+        // Read the instantaneous speeds
+        if (elap_since_InstantaneousSpeeds > elap_since_InstantaneousSpeeds_span)
+            {
+                elap_since_InstantaneousSpeeds = 0;
+                interface_->read(instantaneous_speeds_, address_);
+                const auto &[m1_speed, m2_speed] = instantaneous_speeds_.fields;
+                RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "RoboClawUnit::read()  Instantaneous Speeds: M1 = %d, M2 = %d", m1_speed, m2_speed);
+            }
+
+            read_time_distribution.addValue(elap_read);
+        }
 
     // Write the tick rate request to the roboclaw and update
     void RoboClawUnit::write()
     {
+        elapsedMillis elap_write;
+
         // Get references to fields in the tick rate command message
         auto &[m1_speed, m2_speed] = tick_rate_command_.fields;
 
-        // Set values to each field if the corresponding joint exists
-        if (joints[0]) { m1_speed = joints[0]->getTickRateCommand(); }
-        if (joints[1]) { m2_speed = joints[1]->getTickRateCommand(); }
+        // auto &m1_speed_m1 = std::get<0>(m1_tick_rate_command_.fields);
+        // auto &m2_speed_m2 = std::get<0>(m2_tick_rate_command_.fields);
 
-        // Write the rate request to the roboclaw driver
+        int32_t m1_speed_target = 0;
+        int32_t m2_speed_target = 0;
+
+        // Set values to each field if the corresponding joint exists
+        if (joints[0]) { m1_speed_target = joints[0]->getTickRateCommand(); }
+        if (joints[1]) { m2_speed_target = joints[1]->getTickRateCommand(); }
+
+        m1_speed = m1_speed_target;
+        m2_speed = m2_speed_target;
+
+        // m1_speed_m1 = m1_speed_target;
+        // m2_speed_m2 = m2_speed_target;
+
+        // // Write the rate request to the roboclaw driver
+
         interface_->write(tick_rate_command_, address_);
+        // interface_->write(m1_tick_rate_command_, address_);
+        // interface_->write(m2_tick_rate_command_, address_);
 
         auto [m1_actual_speed, m2_actual_speed] = tick_rate_command_.fields;
+        // auto m1_actual_speed = std::get<0>(m1_tick_rate_command_.fields);
+        // auto m2_actual_speed = std::get<0>(m2_tick_rate_command_.fields);
+
         if (m1_actual_speed != m1_actual_speed_in_ticks_previous || m2_actual_speed != m2_actual_speed_in_ticks_previous)
             {
                 m1_actual_speed_in_ticks_previous = m1_actual_speed;
                 m2_actual_speed_in_ticks_previous = m2_actual_speed;
                 write_count_++;
-                // RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "RoboClawUnit::write()  m[1|2]_actual_speed = %5d / %5d ", m1_actual_speed, m2_actual_speed);
+                RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "RoboClawUnit::write()  m[1|2]_actual_speed = %5d / %5d ", m1_actual_speed, m2_actual_speed);
             }
+
+            write_time_distribution.addValue(elap_write);
     }
 
     void RoboClawUnit::read_firmware_version()
     {
-
-        //int tick_size = tick_rate_command_.getReadSize();
-
-
         // Read the firmware version from the roboclaw
         interface_->read(firmware_version_, address_);
         const auto &[version] = firmware_version_.fields;
@@ -127,6 +195,69 @@ namespace roboclaw_hardware_interface
             }
 
         RCLCPP_INFO(rclcpp::get_logger("RoboclawHardwareInterface"), "RoboClawUnit::read_firmware_version() = %s", version_str.c_str());
+    }
+
+        //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
+        void RoboClawUnit::dump_distributions()
+        {
+            auto log = rclcpp::get_logger("RoboclawHardwareInterface");
+            RCLCPP_INFO(log, "RoboClawUnit::dump_distributions()-------------");
+
+            // read_time_distribution
+            RCLCPP_INFO(log, "RoboClawUnit::dump_distributions()---  read_time_distribution  ----------");
+            for (int x = 0; x < read_time_distribution.MAX_VALUE; x++)
+                {
+                    long count = read_time_distribution.getValue(x);
+                    if (count > 0) { RCLCPP_INFO(log, "RoboClawUnit::dump_distributions()---  read_time_distribution[%d] = %ld", x, count); }
+                }
+            RCLCPP_INFO(log, "RoboClawUnit::dump_distributions()---  write_time_distribution  ----------");
+            for (int x = 0; x < write_time_distribution.MAX_VALUE; x++)
+                {
+                    long count = write_time_distribution.getValue(x);
+                    if (count > 0) { RCLCPP_INFO(log, "RoboClawUnit::dump_distributions()---  write_time_distribution[%d] = %ld", x, count); }
+                }
+
+            RCLCPP_INFO(log, "RoboClawUnit::dump_distributions()------------- done -------------------");
+        }
+
+        //-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~-=+^~
+
+
+
+    std::string RoboClawUnit::roboclaw_status_as_string(uint32_t status)
+    {
+        std::string status_str;
+        if (status == 0) { return "Normal"; }
+        if (status & 0x01) { status_str += "E-Stop, "; }
+        if (status & 0x02) { status_str += "Temperature Error, "; }
+        if (status & 0x04) { status_str += "Temperature 2 Error, "; }
+        if (status & 0x08) { status_str += "Main Voltage High Error, "; }
+        if (status & 0x10) { status_str += "Logic Voltage High Error, "; }
+        if (status & 0x20) { status_str += "Logic Voltage Low Error, "; }
+        if (status & 0x40) { status_str += "M1 Driver Fault Error, "; }
+        if (status & 0x80) { status_str += "M2 Driver Fault Error, "; }
+        if (status & 0x100) { status_str += "M1 Speed Error, ";}
+        if (status & 0x200) { status_str += "M2 Speed Error, "; }
+        if (status & 0x400) { status_str += "M1 Position Error, "; }
+        if (status & 0x800) { status_str += "M2 Position Error, "; }
+        if (status & 0x1000) { status_str += "M1 Current Error, "; }
+        if (status & 0x2000) { status_str += "M2 Current Error, "; }
+        if (status & 0x10000) { status_str += "M1 Over Current Warning, "; }
+        if (status & 0x20000) { status_str += "M2 Over Current Warning, "; }
+        if (status & 0x40000) { status_str += "Main Voltage High Warning, "; }
+        if (status & 0x80000) { status_str += "Main Voltage Low Warning, "; }
+        if (status & 0x100000) { status_str += "Temperature Warning, "; }
+        if (status & 0x200000) { status_str += "Temperature 2 Warning, "; }
+        if (status & 0x400000) { status_str += "S4 Signal Triggered, "; }
+        if (status & 0x800000) { status_str += "S5 Signal Triggered, "; }
+        if (status & 0x1000000) { status_str += "Speed Error Limit Warning, "; }
+        if (status & 0x2000000) { status_str += "Position Error Limit Warning, "; }
+
+        // Remove trailing comma and space
+        if (!status_str.empty()) {
+            status_str.erase(status_str.size() - 2);
+        }
+        return status_str;
     }
 
 }       // namespace roboclaw_hardware_interface

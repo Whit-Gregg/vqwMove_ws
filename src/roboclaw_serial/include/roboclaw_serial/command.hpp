@@ -235,8 +235,19 @@ using VelocityPIDConstantsM2 = Request<
 // the incoming pulses. The values used will differ from one encoder to
 // another. Once a value is sent the motor will begin to accelerate as
 // fast as possible until the rate defined is reached.
-using DriveM1M2WithSignedSpeed =
-  Request<Command::NONE, Command::DRIVE_M1_M2_SGN_SPD, int32_t, int32_t>;
+using DriveM1M2WithSignedSpeed = Request<Command::NONE, Command::DRIVE_M1_M2_SGN_SPD, int32_t, int32_t>;
+
+using DriveM1WithSignedSpeed = Request<Command::NONE, Command::DRIVE_M1_SGN_SPD, int32_t>;
+using DriveM2WithSignedSpeed = Request<Command::NONE, Command::DRIVE_M2_SGN_SPD, int32_t>;
+
+using RoboclawStatus = Request<Command::READ_STATUS, Command::NONE, uint32_t>;
+
+
+// Read the current motor speeds in ticks per second. This is the
+// instantaneous speed of the motors.
+using InstantaneousSpeeds = Request<Command::READ_M1_M2_RAW_SPD, Command::NONE, int32_t, int32_t>;
+
+
 
 // Add additional commands here. See BasicMicro user manual for examples
 // https://downloads.basicmicro.com/docs/roboclaw_user_manual.pdf

@@ -4,9 +4,6 @@
 			"path": "."
 		},
 		{
-			"path": "../../../opt/ros/jazzy"
-		},
-		{
 			"path": "../.ros/log"
 		},
 		{
@@ -23,6 +20,9 @@
 		},
 		{
 			"path": "../../../var"
+		},
+		{
+			"path": "../../../opt/ros/kilted"
 		}
 	],
 	"settings": {
